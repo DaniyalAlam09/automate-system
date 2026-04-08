@@ -97,8 +97,8 @@ export default function TermsPage() {
         <h2>11. Contact</h2>
         <p style={muted}>
           Questions about these terms can be sent to{' '}
-          <a href="mailto:legal@autopost.app" style={{ color: '#dbe8ff' }}>
-            legal@autopost.app
+          <a href="mailto:legal@reelify.app" style={{ color: '#dbe8ff' }}>
+            legal@reelify.app
           </a>
           .
         </p>

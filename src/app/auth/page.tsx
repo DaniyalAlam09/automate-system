@@ -74,28 +74,36 @@ export default function AuthPage() {
           <div style={{ width:32, height:32, background:'linear-gradient(135deg,#22d3ee,#3b82f6,#8b5cf6)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
           </div>
-          <span style={{ fontSize:16, fontWeight:500, color:'#f5f0eb', letterSpacing:'-0.3px' }}>AutoPost</span>
+          <span style={{ fontSize:16, fontWeight:500, color:'#f5f0eb', letterSpacing:'-0.3px' }}>Reelify</span>
         </div>
 
         {/* Hero */}
         <div style={{ maxWidth:440 }}>
           <div className="fade-up" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#ffffff07', border:'0.5px solid #ffffff12', borderRadius:100, padding:'5px 14px', fontSize:11, color:'#99c5ff', letterSpacing:'1px', textTransform:'uppercase', marginBottom:28 }}>
             <span style={{ width:5, height:5, borderRadius:'50%', background:'#22d3ee', display:'inline-block' }} />
-            Instagram Scheduler
+            Instagram Scheduler & Reel Automation
           </div>
           <h1 className="fade-up-2" style={{ fontFamily:"'Playfair Display',serif", fontStyle:'italic', fontSize:'clamp(40px,4vw,58px)', color:'#f5f0eb', lineHeight:1.12, letterSpacing:'-1.5px', marginBottom:18 }}>
-            Post while<br />
-            you{' '}
-            <span style={{ background:'linear-gradient(90deg,#22d3ee,#8b5cf6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>sleep.</span>
+            Instagram scheduler:
+            <br />
+            <span style={{ background:'linear-gradient(90deg,#22d3ee,#8b5cf6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+              Schedule your Instagram. Post while you sleep.
+            </span>
           </h1>
           <p className="fade-up-3" style={{ fontSize:15, color:'#95a6c7', lineHeight:1.65, fontWeight:300, maxWidth:380 }}>
-            Upload a week of content in one sitting. AutoPost publishes it automatically — on time, every time, whether you're online or not.
+            Reelify is a free Instagram scheduler that auto-publishes your posts and reels on time
+            — even when you&apos;re completely offline. Upload a full week of content in minutes.
           </p>
         </div>
 
         {/* Features */}
         <div>
-          {['Schedule photos & reels with captions', 'AI-generated captions & hashtags', 'Auto-publish even when offline', 'Supports multiple Instagram accounts'].map((f, i) => (
+          {[
+            'Schedule Instagram posts & reels in bulk',
+            'AI-generated captions and hashtags',
+            'Auto-publish even when offline',
+            'Free Instagram scheduler for creators',
+          ].map((f, i) => (
             <div key={f} className="ap-feature" style={{ animationDelay: `${0.3 + i * 0.07}s` }}>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'linear-gradient(135deg,#22d3ee,#3b82f6)', flexShrink:0 }} />
               {f}
@@ -111,7 +119,7 @@ export default function AuthPage() {
             {isSignUp ? 'Get started' : 'Welcome back'}
           </p>
           <h2 style={{ fontSize:24, fontWeight:500, color:'#f5f0eb', letterSpacing:'-0.5px', marginBottom:32 }}>
-            {isSignUp ? 'Create your account' : 'Sign in to AutoPost'}
+            {isSignUp ? 'Create your account' : 'Sign in to Reelify'}
           </h2>
 
           {error && (

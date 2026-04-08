@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Terms and Conditions - AutoPost',
-  description: 'Terms and Conditions for AutoPost services.',
+  title: 'Terms and Conditions - Reelify',
+  description: 'Terms and Conditions for Reelify services.',
 }
 
 const container: React.CSSProperties = {
@@ -28,13 +28,13 @@ export default function TermsPage() {
         <p style={muted}>Last updated: April 8, 2026</p>
 
         <p style={muted}>
-          These Terms and Conditions govern your access to and use of AutoPost services. By using
-          AutoPost, you agree to these terms.
+          These Terms and Conditions govern your access to and use of Reelify services. By using
+          Reelify, you agree to these terms.
         </p>
 
         <h2>1. Service Scope</h2>
         <p style={muted}>
-          AutoPost provides scheduling and automation tools for social media publishing workflows.
+          Reelify provides scheduling and automation tools for social media publishing workflows.
           Features may evolve over time and may depend on third-party platform availability.
         </p>
 
@@ -54,13 +54,13 @@ export default function TermsPage() {
 
         <h2>4. Third-Party Platforms</h2>
         <p style={muted}>
-          AutoPost integrates with services such as Meta platforms. We are not responsible for
+          Reelify integrates with services such as Meta platforms. We are not responsible for
           outages, policy changes, or limitations imposed by third-party providers.
         </p>
 
         <h2>5. User Content</h2>
         <p style={muted}>
-          You retain ownership of your content. You grant AutoPost a limited license to process,
+          You retain ownership of your content. You grant Reelify a limited license to process,
           store, and transmit your content solely to provide requested service functionality.
         </p>
 
@@ -78,7 +78,7 @@ export default function TermsPage() {
 
         <h2>8. Limitation of Liability</h2>
         <p style={muted}>
-          To the maximum extent permitted by law, AutoPost is not liable for indirect, incidental,
+          To the maximum extent permitted by law, Reelify is not liable for indirect, incidental,
           special, consequential, or punitive damages arising from service use.
         </p>
 

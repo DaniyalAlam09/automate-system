@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - AutoPost',
-  description: 'Privacy Policy for AutoPost services and integrations.',
+  title: 'Privacy Policy - Reelify',
+  description: 'Privacy Policy for Reelify services and integrations.',
 }
 
 const container: React.CSSProperties = {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
         <p style={muted}>Last updated: April 8, 2026</p>
 
         <p style={muted}>
-          This Privacy Policy describes how AutoPost collects, uses, stores, and shares information
+          This Privacy Policy describes how Reelify collects, uses, stores, and shares information
           when you use our website, dashboard, and connected social media integrations.
         </p>
 
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
 
         <h2>4. Third-Party Services and Integrations</h2>
         <p style={muted}>
-          AutoPost may integrate with third-party tools and providers, including Meta platforms and
+          Reelify may integrate with third-party tools and providers, including Meta platforms and
           infrastructure vendors. Data shared with third parties is limited to what is required to
           provide requested features. Third-party services are governed by their own policies.
         </p>

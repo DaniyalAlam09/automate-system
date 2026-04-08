@@ -84,7 +84,7 @@ export default function DashboardClient({ user, igAccounts, initialPosts, succes
             <div style={{ width:28, height:28, background:'linear-gradient(135deg,#22d3ee,#3b82f6,#8b5cf6)', borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
             </div>
-            <span style={{ fontSize:15, fontWeight:500, letterSpacing:'-0.3px' }}>AutoPost</span>
+            <span style={{ fontSize:15, fontWeight:500, letterSpacing:'-0.3px' }}>Reelify</span>
           </div>
 
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>

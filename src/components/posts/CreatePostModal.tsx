@@ -76,41 +76,46 @@ export default function CreatePostModal({ igAccounts, onClose, onCreated }: Prop
   const stepIdx = STEPS.indexOf(step)
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'#000000bb', backdropFilter:'blur(8px)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+    <div style={{ position:'fixed', inset:0, background:'#020617b3', backdropFilter:'blur(8px)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap');
-        .modal-input { width:100%; background:#141210; border:0.5px solid #2a2520; border-radius:10px; padding:11px 14px; font-size:13px; color:#f5f0eb; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.2s; box-sizing:border-box; resize:none; }
-        .modal-input::placeholder { color:#3a3530; }
-        .modal-input:focus { border-color:#C13584; }
-        .modal-btn-primary { width:100%; background:linear-gradient(135deg,#F56040,#C13584); border:none; border-radius:9px; padding:12px; font-size:13px; font-weight:500; color:#fff; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.2s; }
+        .modal-input { width:100%; background:#111a2c; border:0.5px solid #2a3d62; border-radius:10px; padding:11px 14px; font-size:13px; color:#ebf1ff; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.2s, box-shadow 0.2s; box-sizing:border-box; resize:none; }
+        .modal-input::placeholder { color:#6f82ab; }
+        .modal-input:focus { border-color:#60a5fa; box-shadow:0 0 0 3px #60a5fa22; }
+        .modal-btn-primary { width:100%; background:linear-gradient(135deg,#22d3ee,#3b82f6,#8b5cf6); border:none; border-radius:9px; padding:12px; font-size:13px; font-weight:500; color:#fff; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.2s, box-shadow 0.2s; }
         .modal-btn-primary:hover { opacity:0.88; }
+        .modal-btn-primary:hover { box-shadow: 0 10px 22px rgba(59,130,246,0.3); }
         .modal-btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-        .modal-btn-ghost { flex:1; background:transparent; border:0.5px solid #2a2520; border-radius:9px; padding:11px; font-size:13px; color:#6b6358; font-family:'DM Sans',sans-serif; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
-        .modal-btn-ghost:hover { border-color:#3a3530; color:#a09488; }
-        .type-btn { flex:1; padding:10px; border-radius:9px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s; border:0.5px solid #2a2520; background:transparent; color:#6b6358; }
-        .type-btn.active { background:#C1358418; border-color:#C1358460; color:#f5f0eb; }
-        .type-btn:hover:not(.active) { border-color:#3a3530; color:#a09488; }
+        .modal-btn-ghost { flex:1; background:transparent; border:0.5px solid #2a3d62; border-radius:9px; padding:11px; font-size:13px; color:#9db0d6; font-family:'DM Sans',sans-serif; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
+        .modal-btn-ghost:hover { border-color:#5c7ab8; color:#dbe8ff; }
+        .type-btn { flex:1; padding:10px; border-radius:9px; font-size:13px; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.2s; border:0.5px solid #2a3d62; background:transparent; color:#9db0d6; }
+        .type-btn.active { background:#3b82f629; border-color:#60a5fa70; color:#ebf1ff; }
+        .type-btn:hover:not(.active) { border-color:#5c7ab8; color:#dbe8ff; }
         @keyframes modalIn { from{opacity:0;transform:scale(0.97) translateY(8px)} to{opacity:1;transform:none} }
+        .modal-shell { background:#0d1322; border:0.5px solid #2a3d62; border-radius:16px; width:100%; max-width:540px; max-height:90vh; overflow-y:auto; animation:modalIn 0.25s ease; font-family:'DM Sans',sans-serif; }
+        @media (max-width: 680px) {
+          .modal-shell { max-width:100%; max-height:100vh; border-radius:12px; }
+        }
       `}</style>
 
-      <div style={{ background:'#0d0c0b', border:'0.5px solid #2a2520', borderRadius:16, width:'100%', maxWidth:480, maxHeight:'90vh', overflowY:'auto', animation:'modalIn 0.25s ease', fontFamily:"'DM Sans',sans-serif" }}>
+      <div className="modal-shell">
 
         {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 20px', borderBottom:'0.5px solid #1a1815' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 20px', borderBottom:'0.5px solid #1f2b45' }}>
           <div>
-            <p style={{ fontSize:15, fontWeight:500, color:'#f5f0eb' }}>Schedule a post</p>
-            <p style={{ fontSize:11, color:'#4a4540', marginTop:2, textTransform:'capitalize' }}>Step {stepIdx + 1} of 3 — {step}</p>
+            <p style={{ fontSize:15, fontWeight:500, color:'#ebf1ff' }}>Schedule a post</p>
+            <p style={{ fontSize:11, color:'#8fa3cc', marginTop:2, textTransform:'capitalize' }}>Step {stepIdx + 1} of 3 — {step}</p>
           </div>
-          <button onClick={onClose} style={{ background:'transparent', border:'none', cursor:'pointer', color:'#4a4540', display:'flex', alignItems:'center', justifyContent:'center', padding:4, borderRadius:6, transition:'color 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#f5f0eb')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#4a4540')}>
+          <button onClick={onClose} style={{ background:'transparent', border:'none', cursor:'pointer', color:'#8fa3cc', display:'flex', alignItems:'center', justifyContent:'center', padding:4, borderRadius:6, transition:'color 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#ebf1ff')}
+            onMouseLeave={e => (e.currentTarget.style.color = '#8fa3cc')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
         {/* Step progress bar */}
-        <div style={{ height:2, background:'#1a1815', position:'relative' }}>
-          <div style={{ position:'absolute', top:0, left:0, height:'100%', background:'linear-gradient(90deg,#F56040,#C13584)', width:`${((stepIdx + 1) / 3) * 100}%`, transition:'width 0.3s ease', borderRadius:1 }} />
+        <div style={{ height:2, background:'#1f2b45', position:'relative' }}>
+          <div style={{ position:'absolute', top:0, left:0, height:'100%', background:'linear-gradient(90deg,#22d3ee,#8b5cf6)', width:`${((stepIdx + 1) / 3) * 100}%`, transition:'width 0.3s ease', borderRadius:1 }} />
         </div>
 
         <div style={{ padding:'20px' }}>
@@ -121,7 +126,7 @@ export default function CreatePostModal({ igAccounts, onClose, onCreated }: Prop
               {/* Media type */}
               <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                 {(['IMAGE', 'REEL'] as const).map(t => (
-                  <button key={t} className={`type-btn ${mediaType === t ? 'active' : ''}`} onClick={() => setMediaType(t)}>
+                  <button type="button" key={t} className={`type-btn ${mediaType === t ? 'active' : ''}`} onClick={() => setMediaType(t)}>
                     {t === 'IMAGE' ? '🖼  Image' : '🎬  Reel'}
                   </button>
                 ))}
@@ -189,13 +194,13 @@ export default function CreatePostModal({ igAccounts, onClose, onCreated }: Prop
                     placeholder="Describe your post briefly..."
                     onKeyDown={e => e.key === 'Enter' && generateCaption()}
                   />
-                  <button onClick={generateCaption} disabled={aiLoading || !aiPrompt.trim()}
+                  <button type="button" onClick={generateCaption} disabled={aiLoading || !aiPrompt.trim()}
                     style={{ background: aiLoading || !aiPrompt.trim() ? '#2a2520' : 'linear-gradient(135deg,#F56040,#C13584)', border:'none', borderRadius:9, padding:'0 14px', fontSize:12, fontWeight:500, color: aiLoading || !aiPrompt.trim() ? '#4a4540' : '#fff', fontFamily:"'DM Sans',sans-serif", cursor: aiLoading || !aiPrompt.trim() ? 'not-allowed' : 'pointer', whiteSpace:'nowrap', transition:'all 0.2s' }}>
                     {aiLoading ? '...' : 'Generate'}
                   </button>
                 </div>
                 {aiAlternatives.length > 0 && aiAlternatives.map((alt, i) => (
-                  <button key={i} onClick={() => setCaption(alt)}
+                  <button type="button" key={i} onClick={() => setCaption(alt)}
                     style={{ display:'block', width:'100%', textAlign:'left', background:'#0d0c0b', border:'0.5px solid #2a2520', borderRadius:7, padding:'7px 10px', fontSize:12, color:'#6b6358', fontFamily:"'DM Sans',sans-serif", cursor:'pointer', marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', transition:'color 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.color = '#f5f0eb')}
                     onMouseLeave={e => (e.currentTarget.style.color = '#6b6358')}>
@@ -219,8 +224,8 @@ export default function CreatePostModal({ igAccounts, onClose, onCreated }: Prop
               {error && <p style={{ fontSize:12, color:'#D85A30', marginTop:8 }}>{error}</p>}
 
               <div style={{ display:'flex', gap:8, marginTop:20 }}>
-                <button className="modal-btn-ghost" onClick={() => setStep('media')}>← Back</button>
-                <button className="modal-btn-primary" style={{ flex:1 }} onClick={() => setStep('schedule')}>Continue →</button>
+                <button type="button" className="modal-btn-ghost" onClick={() => setStep('media')}>← Back</button>
+                <button type="button" className="modal-btn-primary" style={{ flex:1 }} onClick={() => setStep('schedule')}>Continue →</button>
               </div>
             </div>
           )}
@@ -254,7 +259,7 @@ export default function CreatePostModal({ igAccounts, onClose, onCreated }: Prop
               {error && <p style={{ fontSize:12, color:'#D85A30', marginTop:8 }}>{error}</p>}
 
               <div style={{ display:'flex', gap:8, marginTop:20 }}>
-                <button className="modal-btn-ghost" onClick={() => setStep('details')}>← Back</button>
+                <button type="button" className="modal-btn-ghost" onClick={() => setStep('details')}>← Back</button>
                 <button className="modal-btn-primary" style={{ flex:1 }} onClick={handleSubmit} disabled={submitting || !scheduledAt}>
                   {submitting ? 'Scheduling...' : '🚀 Schedule post'}
                 </button>

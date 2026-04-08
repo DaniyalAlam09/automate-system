@@ -72,11 +72,18 @@ export default function PrivacyPage() {
         <h2>6. Data Deletion Requests</h2>
         <p style={muted}>
           You can request account deletion and associated data removal by emailing{' '}
-          <a href="mailto:privacy@autopost.app" style={{ color: '#dbe8ff' }}>
-            privacy@autopost.app
+          <a href="mailto:privacy@reelify.app" style={{ color: '#dbe8ff' }}>
+            privacy@reelify.app
           </a>
           . We will verify ownership and process valid requests within a reasonable period, subject
           to legal retention requirements.
+        </p>
+        <p style={muted}>
+          Meta platform deletion instructions are available at{' '}
+          <Link href="/data-deletion" style={{ color: '#dbe8ff' }}>
+            /data-deletion
+          </Link>
+          .
         </p>
 
         <h2>7. Your Rights</h2>
@@ -100,8 +107,8 @@ export default function PrivacyPage() {
         <h2>10. Contact</h2>
         <p style={muted}>
           Privacy questions can be sent to{' '}
-          <a href="mailto:privacy@autopost.app" style={{ color: '#dbe8ff' }}>
-            privacy@autopost.app
+          <a href="mailto:privacy@reelify.app" style={{ color: '#dbe8ff' }}>
+            privacy@reelify.app
           </a>
           .
         </p>

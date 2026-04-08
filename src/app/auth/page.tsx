@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -35,34 +36,42 @@ export default function AuthPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0908', display: 'flex', fontFamily: "'DM Sans', sans-serif", position: 'relative', overflow: 'hidden' }}>
+    <div className="auth-shell" style={{ minHeight: '100vh', background: '#070b14', display: 'flex', fontFamily: "'DM Sans', sans-serif", position: 'relative', overflow: 'hidden' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Playfair+Display:ital@1&display=swap');
-        .ap-input { width:100%; background:#141210; border:0.5px solid #2a2520; border-radius:10px; padding:12px 14px; font-size:14px; color:#f5f0eb; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.2s; box-sizing:border-box; }
-        .ap-input::placeholder { color:#3a3530; }
-        .ap-input:focus { border-color:#C13584; }
-        .ap-btn-primary { width:100%; background:linear-gradient(135deg,#F56040 0%,#C13584 55%,#833AB4 100%); border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:500; color:#fff; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.2s,transform 0.1s; letter-spacing:0.2px; }
+        .auth-shell { display:flex; }
+        .auth-left { flex:1; display:flex; flex-direction:column; justify-content:space-between; padding:48px 56px; position:relative; z-index:1; }
+        .auth-right { width:460px; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:48px 44px; position:relative; z-index:1; border-left:0.5px solid #1f2b45; background:#0d1322cc; backdrop-filter: blur(10px); }
+        .ap-input { width:100%; background:#111a2c; border:0.5px solid #2a3d62; border-radius:10px; padding:12px 14px; font-size:14px; color:#ebf1ff; font-family:'DM Sans',sans-serif; outline:none; transition:border-color 0.2s, box-shadow 0.2s; box-sizing:border-box; }
+        .ap-input::placeholder { color:#6f82ab; }
+        .ap-input:focus { border-color:#60a5fa; box-shadow:0 0 0 3px #60a5fa22; }
+        .ap-btn-primary { width:100%; background:linear-gradient(135deg,#22d3ee 0%,#3b82f6 55%,#8b5cf6 100%); border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:500; color:#fff; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity 0.2s,transform 0.1s, box-shadow 0.2s; letter-spacing:0.2px; }
         .ap-btn-primary:hover { opacity:0.88; }
         .ap-btn-primary:active { transform:scale(0.99); }
         .ap-btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
-        .ap-btn-ghost { width:100%; background:transparent; border:0.5px solid #1e1c1a; border-radius:10px; padding:12px; font-size:13px; color:#6b6358; font-family:'DM Sans',sans-serif; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
-        .ap-btn-ghost:hover { border-color:#3a3530; color:#a09488; }
-        .ap-feature { display:flex; align-items:center; gap:10px; font-size:13px; color:#6b6358; margin-bottom:12px; }
+        .ap-btn-primary:hover { box-shadow:0 10px 26px #3b82f644; }
+        .ap-btn-ghost { width:100%; background:transparent; border:0.5px solid #2a3d62; border-radius:10px; padding:12px; font-size:13px; color:#98abce; font-family:'DM Sans',sans-serif; cursor:pointer; transition:border-color 0.2s,color 0.2s; }
+        .ap-btn-ghost:hover { border-color:#5c7ab8; color:#d4e2ff; }
+        .ap-feature { display:flex; align-items:center; gap:10px; font-size:13px; color:#9cafcf; margin-bottom:12px; }
         @keyframes fadeUp { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
         .fade-up { animation: fadeUp 0.6s ease both; }
         .fade-up-2 { animation: fadeUp 0.6s 0.1s ease both; }
         .fade-up-3 { animation: fadeUp 0.6s 0.2s ease both; }
+        @media (max-width: 980px) {
+          .auth-shell { flex-direction:column; }
+          .auth-left { padding:30px 22px 18px; }
+          .auth-right { width:100%; border-left:none; border-top:0.5px solid #ffffff07; padding:24px 20px 32px; background:transparent; }
+        }
       `}</style>
 
-      {/* Warm glow orbs */}
-      <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'#c4511812', filter:'blur(140px)', top:-250, right:-150, pointerEvents:'none' }} />
-      <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'#83205012', filter:'blur(100px)', bottom:-80, left:-60, pointerEvents:'none' }} />
+      <div style={{ position:'absolute', width:700, height:700, borderRadius:'50%', background:'#22d3ee1f', filter:'blur(140px)', top:-250, right:-150, pointerEvents:'none' }} />
+      <div style={{ position:'absolute', width:400, height:400, borderRadius:'50%', background:'#8b5cf61f', filter:'blur(100px)', bottom:-80, left:-60, pointerEvents:'none' }} />
 
       {/* LEFT PANEL */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', justifyContent:'space-between', padding:'48px 56px', position:'relative', zIndex:1 }}>
+      <div className="auth-left">
         {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <div style={{ width:32, height:32, background:'linear-gradient(135deg,#F56040,#C13584,#833AB4)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ width:32, height:32, background:'linear-gradient(135deg,#22d3ee,#3b82f6,#8b5cf6)', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
           </div>
           <span style={{ fontSize:16, fontWeight:500, color:'#f5f0eb', letterSpacing:'-0.3px' }}>AutoPost</span>
@@ -70,16 +79,16 @@ export default function AuthPage() {
 
         {/* Hero */}
         <div style={{ maxWidth:440 }}>
-          <div className="fade-up" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#ffffff07', border:'0.5px solid #ffffff12', borderRadius:100, padding:'5px 14px', fontSize:11, color:'#c4a882', letterSpacing:'1px', textTransform:'uppercase', marginBottom:28 }}>
-            <span style={{ width:5, height:5, borderRadius:'50%', background:'#F56040', display:'inline-block' }} />
+          <div className="fade-up" style={{ display:'inline-flex', alignItems:'center', gap:7, background:'#ffffff07', border:'0.5px solid #ffffff12', borderRadius:100, padding:'5px 14px', fontSize:11, color:'#99c5ff', letterSpacing:'1px', textTransform:'uppercase', marginBottom:28 }}>
+            <span style={{ width:5, height:5, borderRadius:'50%', background:'#22d3ee', display:'inline-block' }} />
             Instagram Scheduler
           </div>
           <h1 className="fade-up-2" style={{ fontFamily:"'Playfair Display',serif", fontStyle:'italic', fontSize:'clamp(40px,4vw,58px)', color:'#f5f0eb', lineHeight:1.12, letterSpacing:'-1.5px', marginBottom:18 }}>
             Post while<br />
             you{' '}
-            <span style={{ background:'linear-gradient(90deg,#F56040,#C13584)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>sleep.</span>
+            <span style={{ background:'linear-gradient(90deg,#22d3ee,#8b5cf6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>sleep.</span>
           </h1>
-          <p className="fade-up-3" style={{ fontSize:15, color:'#7a706a', lineHeight:1.65, fontWeight:300, maxWidth:380 }}>
+          <p className="fade-up-3" style={{ fontSize:15, color:'#95a6c7', lineHeight:1.65, fontWeight:300, maxWidth:380 }}>
             Upload a week of content in one sitting. AutoPost publishes it automatically — on time, every time, whether you're online or not.
           </p>
         </div>
@@ -88,7 +97,7 @@ export default function AuthPage() {
         <div>
           {['Schedule photos & reels with captions', 'AI-generated captions & hashtags', 'Auto-publish even when offline', 'Supports multiple Instagram accounts'].map((f, i) => (
             <div key={f} className="ap-feature" style={{ animationDelay: `${0.3 + i * 0.07}s` }}>
-              <div style={{ width:6, height:6, borderRadius:'50%', background:'linear-gradient(135deg,#F56040,#C13584)', flexShrink:0 }} />
+              <div style={{ width:6, height:6, borderRadius:'50%', background:'linear-gradient(135deg,#22d3ee,#3b82f6)', flexShrink:0 }} />
               {f}
             </div>
           ))}
@@ -96,9 +105,9 @@ export default function AuthPage() {
       </div>
 
       {/* RIGHT PANEL */}
-      <div style={{ width:460, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', padding:'48px 44px', position:'relative', zIndex:1, borderLeft:'0.5px solid #ffffff07', background:'#0d0c0b' }}>
+      <div className="auth-right">
         <div style={{ width:'100%', maxWidth:360 }}>
-          <p style={{ fontSize:11, letterSpacing:'1.5px', textTransform:'uppercase', color:'#4a4540', marginBottom:8 }}>
+          <p style={{ fontSize:11, letterSpacing:'1.5px', textTransform:'uppercase', color:'#7f90b5', marginBottom:8 }}>
             {isSignUp ? 'Get started' : 'Welcome back'}
           </p>
           <h2 style={{ fontSize:24, fontWeight:500, color:'#f5f0eb', letterSpacing:'-0.5px', marginBottom:32 }}>
@@ -118,11 +127,11 @@ export default function AuthPage() {
 
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom:16 }}>
-              <label style={{ display:'block', fontSize:12, color:'#6b6358', marginBottom:6 }}>Email address</label>
+              <label style={{ display:'block', fontSize:12, color:'#93a7cb', marginBottom:6 }}>Email address</label>
               <input className="ap-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
             </div>
             <div style={{ marginBottom:20 }}>
-              <label style={{ display:'block', fontSize:12, color:'#6b6358', marginBottom:6 }}>Password</label>
+              <label style={{ display:'block', fontSize:12, color:'#93a7cb', marginBottom:6 }}>Password</label>
               <input className="ap-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
             <button type="submit" className="ap-btn-primary" disabled={loading}>
@@ -131,14 +140,20 @@ export default function AuthPage() {
           </form>
 
           <div style={{ display:'flex', alignItems:'center', gap:12, margin:'24px 0' }}>
-            <div style={{ flex:1, height:'0.5px', background:'#1e1c1a' }} />
-            <span style={{ fontSize:12, color:'#3a3530' }}>or</span>
-            <div style={{ flex:1, height:'0.5px', background:'#1e1c1a' }} />
+            <div style={{ flex:1, height:'0.5px', background:'#2a3d62' }} />
+            <span style={{ fontSize:12, color:'#7185ac' }}>or</span>
+            <div style={{ flex:1, height:'0.5px', background:'#2a3d62' }} />
           </div>
 
           <button className="ap-btn-ghost" onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null) }}>
             {isSignUp ? 'Already have an account? Sign in →' : "Don't have an account? Sign up →"}
           </button>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 14, marginTop: 18, fontSize: 12 }}>
+            <Link href="/landing" style={{ color: '#93a7cb', textDecoration: 'none' }}>Home</Link>
+            <Link href="/privacy" style={{ color: '#93a7cb', textDecoration: 'none' }}>Privacy</Link>
+            <Link href="/terms" style={{ color: '#93a7cb', textDecoration: 'none' }}>Terms</Link>
+          </div>
         </div>
       </div>
     </div>

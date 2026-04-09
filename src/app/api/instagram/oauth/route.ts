@@ -37,10 +37,10 @@ export async function GET(request: NextRequest) {
   // State contains userId and connection type to link account after OAuth
   const state = Buffer.from(JSON.stringify({ userId: user.id, isDirect })).toString('base64')
 
-  // Use the standard Facebook OAuth dialog for both flows.
-  // Meta's official recommendation for "Instagram Login for Business" is to use this 
-  // endpoint with the Instagram App ID for maximum compatibility and stability.
-  const baseUrl = 'https://www.facebook.com/v19.0/dialog/oauth'
+  // Use Instagram-specific authorize URL for direct login, otherwise Facebook
+  const baseUrl = isDirect 
+    ? 'https://www.instagram.com/oauth/authorize' 
+    : 'https://www.facebook.com/v19.0/dialog/oauth'
 
   const authUrl = new URL(baseUrl)
   authUrl.searchParams.set('client_id', appId)

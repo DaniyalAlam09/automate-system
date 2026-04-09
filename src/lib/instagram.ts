@@ -22,12 +22,13 @@ export interface IGUserInfo {
 export async function getInstagramAccounts(accessToken: string): Promise<IGUserInfo[]> {
   const accounts: IGUserInfo[] = []
 
+  // 1. Get Instagram Business accounts via Facebook pages (Standard way)
   try {
-    // 1. Get Instagram Business accounts via Facebook pages (Standard way)
     const pagesRes = await fetch(
       `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`
     )
     const pagesData = await pagesRes.json()
+    console.log('FB Pages Response:', JSON.stringify(pagesData).substring(0, 500))
 
     if (pagesData.data) {
       for (const page of pagesData.data) {
@@ -46,13 +47,14 @@ export async function getInstagramAccounts(accessToken: string): Promise<IGUserI
   }
 
   // 2. Fallback: Try to get Instagram accounts directly from the User node
-  // This helps when accounts are not linked to a Page or during direct IG login
   if (accounts.length === 0) {
+    console.log('No accounts found via pages, trying direct fallback...')
     try {
       const userRes = await fetch(
         `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url},instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`
       )
       const userData = await userRes.json()
+      console.log('Direct User Response:', JSON.stringify(userData).substring(0, 500))
       
       const directAccounts = [
         ...(userData.instagram_business_accounts?.data || []),
@@ -63,7 +65,7 @@ export async function getInstagramAccounts(accessToken: string): Promise<IGUserI
         for (const ig of directAccounts) {
           accounts.push({
             id: ig.id,
-            username: ig.username || userData.username,
+            username: ig.username || ig.id,
             profile_picture_url: ig.profile_picture_url,
             account_type: 'BUSINESS',
           })

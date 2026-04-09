@@ -90,6 +90,12 @@ export async function getLongLivedToken(shortToken: string, isDirect = false): P
   const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
   const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
 
+  if (!clientId || !clientSecret) {
+    throw new Error(`Missing ${isDirect ? 'Instagram' : 'Meta'} App Credentials`)
+  }
+
+  // Note: For Instagram Login for Business, the exchange endpoint is generally the same 
+  // as Facebook Graph, but if it's the Basic Display API, it would be different.
   const res = await fetch(
     `${GRAPH_API_BASE}/oauth/access_token` +
     `?grant_type=fb_exchange_token` +

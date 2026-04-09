@@ -35,13 +35,19 @@ export async function GET(request: NextRequest) {
     const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
     const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
 
+    // For direct Instagram login, we use the specific Instagram OAuth endpoint
+    const tokenUrl = isDirect 
+      ? `https://api.instagram.com/oauth/access_token`
+      : `https://graph.facebook.com/v19.0/oauth/access_token`
+
     // Exchange code for short-lived token
     const tokenRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token` +
+      tokenUrl +
       `?client_id=${clientId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
       `&client_secret=${clientSecret}` +
-      `&code=${code}`
+      `&code=${code}` +
+      (isDirect ? '' : '&grant_type=authorization_code')
     )
     const tokenData = await tokenRes.json()
 

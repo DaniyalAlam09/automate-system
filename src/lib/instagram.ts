@@ -130,44 +130,37 @@ export async function getLongLivedToken(
     throw new Error(`Missing ${isDirect ? 'Instagram' : 'Meta'} app credentials`)
   }
 
-  // Basic Display API uses a different endpoint and param name for long-lived exchange
-  const url = isDirect
-    ? `${INSTAGRAM_API_BASE}/access_token`
-    : `${GRAPH_API_BASE}/oauth/access_token`
+  let res: Response
 
-  const params = new URLSearchParams({
-    grant_type: 'ig_exchange_token',   // works for both; Graph API also accepts fb_exchange_token
-    client_id: clientId,
-    client_secret: clientSecret,
-    access_token: shortToken,          // Basic Display uses "access_token", not "fb_exchange_token"
-  })
-
-  // Graph API uses fb_exchange_token param name instead
-  if (!isDirect) {
-    params.delete('access_token')
-    params.set('grant_type', 'fb_exchange_token')
-    params.set('fb_exchange_token', shortToken)
-  }
-
-  const res = await fetch(url, {
-    method: 'GET',                     // Basic Display API long-lived exchange is a GET
-    ...(isDirect ? {} : {
+  if (isDirect) {
+    // Basic Display API: long-lived token exchange is a GET request
+    const params = new URLSearchParams({
+      grant_type: 'ig_exchange_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+      access_token: shortToken,
+    })
+    res = await fetch(`${INSTAGRAM_API_BASE}/access_token?${params.toString()}`)
+  } else {
+    // Business / Graph API: POST with fb_exchange_token
+    const params = new URLSearchParams({
+      grant_type: 'fb_exchange_token',
+      client_id: clientId,
+      client_secret: clientSecret,
+      fb_exchange_token: shortToken,
+    })
+    res = await fetch(`${GRAPH_API_BASE}/oauth/access_token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
-    }),
-  })
+    })
+  }
 
-  // For isDirect GET request, params go in the URL
-  const finalUrl = isDirect ? `${url}?${params.toString()}` : url
-  const finalRes = isDirect
-    ? await fetch(finalUrl)
-    : res
-
-  const data = await finalRes.json()
+  const data = await res.json()
 
   console.log('Long-lived token response:', {
     isDirect,
+    status: res.status,
     hasError: !!data.error,
     errorMessage: data.error?.message,
     hasToken: !!data.access_token,

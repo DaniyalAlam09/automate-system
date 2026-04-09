@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
     
     const redirectUri = `${appUrl}/api/instagram/oauth/callback`
 
-    const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
-    const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
+    const clientId = process.env.META_APP_ID
+    const clientSecret = process.env.META_APP_SECRET
 
     // Always use the Graph API for token exchange for Business App IDs.
     // The legacy api.instagram.com endpoint often fails for modern Business Login.

@@ -50,10 +50,26 @@ export default function ConnectInstagram({ accounts }: Props) {
             </svg>
           </div>
           <p style={{ fontSize:13, color:'#9db0d6', marginBottom:4 }}>No Instagram account connected</p>
-          <p style={{ fontSize:12, color:'#7487ad' }}>You need an Instagram Business or Creator account linked to a Facebook Page</p>
-          <a href="/api/instagram/oauth" className="gradient-btn" style={{ marginTop:16, fontSize:13 }}>
-            Connect Instagram →
-          </a>
+          <p style={{ fontSize:12, color:'#7487ad', maxWidth: 400, margin: '0 auto 16px' }}>
+            You need an Instagram <strong>Business</strong> or <strong>Creator</strong> account. 
+            If using Facebook, ensure it is linked to a Page.
+          </p>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href="/api/instagram/oauth" className="gradient-btn" style={{ fontSize:13 }}>
+              Connect via Facebook →
+            </a>
+            <a 
+              href="/api/instagram/oauth?direct=true" 
+              style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13, color:'#cbd5e1', border:'0.5px solid #475569', borderRadius:10, padding:'10px 16px', textDecoration:'none', transition:'all 0.2s', background:'#ffffff05' }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#ffffff0a')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#ffffff05')}
+            >
+              Direct Instagram Login
+            </a>
+          </div>
+          <p style={{ fontSize:11, color:'#64748b', marginTop: 16 }}>
+            * Note: Direct login still requires a Professional account.
+          </p>
         </div>
       )}
     </section>

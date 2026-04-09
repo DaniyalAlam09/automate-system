@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
 
-  const appId = process.env.META_APP_ID!
+  const { searchParams } = new URL(request.url)
+  const isDirect = searchParams.get('direct') === 'true'
+  const appId = isDirect ? process.env.INSTAGRAM_APP_ID! : process.env.META_APP_ID!
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/instagram/oauth/callback`
 
   // Scopes needed for Instagram content publishing
@@ -18,12 +20,21 @@ export async function GET(request: NextRequest) {
     'instagram_content_publish',
     'pages_show_list',
     'pages_read_engagement',
+    'business_management',
+    // Scopes for direct Instagram Login
+    'instagram_business_basic',
+    'instagram_business_content_publish',
   ].join(',')
 
-  // State contains userId to link account after OAuth
-  const state = Buffer.from(JSON.stringify({ userId: user.id })).toString('base64')
+  // State contains userId and connection type to link account after OAuth
+  const state = Buffer.from(JSON.stringify({ userId: user.id, isDirect })).toString('base64')
 
-  const authUrl = new URL('https://www.facebook.com/v19.0/dialog/oauth')
+  // Use Instagram-specific authorize URL for direct login, otherwise Facebook
+  const baseUrl = isDirect 
+    ? 'https://www.instagram.com/oauth/authorize' 
+    : 'https://www.facebook.com/v19.0/dialog/oauth'
+
+  const authUrl = new URL(baseUrl)
   authUrl.searchParams.set('client_id', appId)
   authUrl.searchParams.set('redirect_uri', redirectUri)
   authUrl.searchParams.set('scope', scopes)

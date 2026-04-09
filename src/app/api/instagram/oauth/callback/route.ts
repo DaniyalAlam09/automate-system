@@ -20,9 +20,11 @@ export async function GET(request: NextRequest) {
 
   // Decode state
   let userId: string
+  let isDirect = false
   try {
     const decoded = JSON.parse(Buffer.from(state, 'base64').toString())
     userId = decoded.userId
+    isDirect = !!decoded.isDirect
   } catch {
     return NextResponse.redirect(`${appUrl}/dashboard?error=invalid_state`)
   }
@@ -30,12 +32,15 @@ export async function GET(request: NextRequest) {
   try {
     const redirectUri = `${appUrl}/api/instagram/oauth/callback`
 
+    const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
+    const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
+
     // Exchange code for short-lived token
     const tokenRes = await fetch(
       `https://graph.facebook.com/v19.0/oauth/access_token` +
-      `?client_id=${process.env.META_APP_ID}` +
+      `?client_id=${clientId}` +
       `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&client_secret=${process.env.META_APP_SECRET}` +
+      `&client_secret=${clientSecret}` +
       `&code=${code}`
     )
     const tokenData = await tokenRes.json()
@@ -44,15 +49,19 @@ export async function GET(request: NextRequest) {
       throw new Error(tokenData.error.message)
     }
 
-    // Exchange for long-lived token (60 days)
-    const longLived = await getLongLivedToken(tokenData.access_token)
+    const longLived = await getLongLivedToken(tokenData.access_token, isDirect)
 
     // Get Instagram accounts linked to this Facebook account
     const igAccounts = await getInstagramAccounts(longLived.access_token)
 
     if (igAccounts.length === 0) {
+      // Provide a more detailed error message to help the user
+      const errorMessage = encodeURIComponent(
+        'No Instagram Business account found. Ensure your Instagram is a "Business" or "Creator" account. ' +
+        'If using Facebook login, ensure it is linked to a Facebook Page.'
+      )
       return NextResponse.redirect(
-        `${appUrl}/dashboard?error=no_instagram_account&message=No Instagram Business or Creator account found. Please link your Instagram to a Facebook Page.`
+        `${appUrl}/dashboard?error=no_instagram_account&message=${errorMessage}`
       )
     }
 

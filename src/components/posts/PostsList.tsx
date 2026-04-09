@@ -9,11 +9,11 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  pending:    { label: 'Scheduled',  color: '#60A5FA', bg: '#1E3A8A22', border: '#60A5FA50' },
-  draft:      { label: 'Draft',      color: '#93A7CB', bg: '#33415522', border: '#93A7CB4A' },
-  publishing: { label: 'Publishing', color: '#FBBF24', bg: '#713F1230', border: '#FBBF2455' },
-  published:  { label: 'Published',  color: '#34D399', bg: '#064E3B25', border: '#34D39955' },
-  failed:     { label: 'Failed',     color: '#FB7185', bg: '#4C051920', border: '#FB718555' },
+  pending:    { label: 'Scheduled',  color: 'var(--brand-cyan)', bg: 'rgba(34, 211, 238, 0.1)', border: 'rgba(34, 211, 238, 0.2)' },
+  draft:      { label: 'Draft',      color: 'var(--text-muted)', bg: 'rgba(148, 163, 184, 0.1)', border: 'rgba(148, 163, 184, 0.2)' },
+  publishing: { label: 'Publishing', color: '#FBBF24', bg: 'rgba(251, 191, 36, 0.1)', border: 'rgba(251, 191, 36, 0.2)' },
+  published:  { label: 'Published',  color: '#34D399', bg: 'rgba(52, 211, 153, 0.1)', border: 'rgba(52, 211, 153, 0.2)' },
+  failed:     { label: 'Failed',     color: '#FB7185', bg: 'rgba(251, 113, 133, 0.1)', border: 'rgba(251, 113, 133, 0.2)' },
 }
 
 export default function PostsList({ posts, onDelete }: Props) {

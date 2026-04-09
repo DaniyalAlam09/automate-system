@@ -17,31 +17,67 @@ export interface IGUserInfo {
 
 /**
  * Get user's Instagram Business accounts linked to their Facebook pages
+ * or directly associated with the user.
  */
 export async function getInstagramAccounts(accessToken: string): Promise<IGUserInfo[]> {
-  // Get Facebook pages
-  const pagesRes = await fetch(
-    `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`
-  )
-  const pagesData = await pagesRes.json()
+  const accounts: IGUserInfo[] = []
 
-  if (pagesData.error) {
-    throw new Error(pagesData.error.message)
+  try {
+    // 1. Get Instagram Business accounts via Facebook pages (Standard way)
+    const pagesRes = await fetch(
+      `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`
+    )
+    const pagesData = await pagesRes.json()
+
+    if (pagesData.data) {
+      for (const page of pagesData.data) {
+        if (page.instagram_business_account) {
+          accounts.push({
+            id: page.instagram_business_account.id,
+            username: page.instagram_business_account.username,
+            profile_picture_url: page.instagram_business_account.profile_picture_url,
+            account_type: 'BUSINESS',
+          })
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching IG accounts via pages:', err)
   }
 
-  const accounts: IGUserInfo[] = []
-  for (const page of pagesData.data || []) {
-    if (page.instagram_business_account) {
-      accounts.push({
-        id: page.instagram_business_account.id,
-        username: page.instagram_business_account.username,
-        profile_picture_url: page.instagram_business_account.profile_picture_url,
-        account_type: 'BUSINESS',
-      })
+  // 2. Fallback: Try to get Instagram accounts directly from the User node
+  // This helps when accounts are not linked to a Page or during direct IG login
+  if (accounts.length === 0) {
+    try {
+      const userRes = await fetch(
+        `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url},instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`
+      )
+      const userData = await userRes.json()
+      
+      const directAccounts = [
+        ...(userData.instagram_business_accounts?.data || []),
+        ...(userData.instagram_accounts?.data || [])
+      ]
+
+      if (directAccounts.length > 0) {
+        for (const ig of directAccounts) {
+          accounts.push({
+            id: ig.id,
+            username: ig.username || userData.username,
+            profile_picture_url: ig.profile_picture_url,
+            account_type: 'BUSINESS',
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching IG accounts via user node:', err)
     }
   }
 
-  return accounts
+  // Deduplicate by ID just in case
+  const uniqueAccounts = Array.from(new Map(accounts.map(a => [a.id, a])).values())
+
+  return uniqueAccounts
 }
 
 /**

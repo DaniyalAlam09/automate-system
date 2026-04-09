@@ -83,15 +83,18 @@ export async function getInstagramAccounts(accessToken: string): Promise<IGUserI
 /**
  * Exchange short-lived token for long-lived token (60 days)
  */
-export async function getLongLivedToken(shortToken: string): Promise<{
+export async function getLongLivedToken(shortToken: string, isDirect = false): Promise<{
   access_token: string
   expires_in: number
 }> {
+  const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
+  const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
+
   const res = await fetch(
     `${GRAPH_API_BASE}/oauth/access_token` +
     `?grant_type=fb_exchange_token` +
-    `&client_id=${process.env.META_APP_ID}` +
-    `&client_secret=${process.env.META_APP_SECRET}` +
+    `&client_id=${clientId}` +
+    `&client_secret=${clientSecret}` +
     `&fb_exchange_token=${shortToken}`
   )
   const data = await res.json()

@@ -14,17 +14,22 @@ export async function GET(request: NextRequest) {
   const appId = isDirect ? process.env.INSTAGRAM_APP_ID! : process.env.META_APP_ID!
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/instagram/oauth/callback`
 
-  // Scopes needed for Instagram content publishing
-  const scopes = [
+  // Scopes for standard Facebook-linked Instagram connection
+  const facebookScopes = [
     'instagram_basic',
     'instagram_content_publish',
     'pages_show_list',
     'pages_read_engagement',
     'business_management',
-    // Scopes for direct Instagram Login
+  ]
+
+  // Scopes for direct Instagram Business Login
+  const directScopes = [
     'instagram_business_basic',
     'instagram_business_content_publish',
-  ].join(',')
+  ]
+
+  const scopes = (isDirect ? directScopes : facebookScopes).join(',')
 
   // State contains userId and connection type to link account after OAuth
   const state = Buffer.from(JSON.stringify({ userId: user.id, isDirect })).toString('base64')

@@ -27,7 +27,6 @@ export async function getInstagramAccounts(
 ): Promise<IGUserInfo[]> {
   const accounts: IGUserInfo[] = []
 
-  // Basic Display API flow — token is scoped to the IG user directly
   if (isDirect) {
     try {
       const res = await fetch(
@@ -56,9 +55,7 @@ export async function getInstagramAccounts(
     return accounts
   }
 
-  // Graph API / Business Login flow
-
-  // 1. Get Instagram Business accounts via Facebook pages (standard way)
+  // 1. Get Instagram Business accounts via Facebook pages
   try {
     const pagesRes = await fetch(
       `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`
@@ -110,14 +107,13 @@ export async function getInstagramAccounts(
     }
   }
 
-  // Deduplicate by ID
   return Array.from(new Map(accounts.map(a => [a.id, a])).values())
 }
 
 /**
  * Exchange short-lived token for long-lived token (60 days).
- * - isDirect=true: Basic Display API uses api.instagram.com
- * - isDirect=false: Business/Graph API uses graph.facebook.com
+ * - isDirect=true: Basic Display API — GET to api.instagram.com
+ * - isDirect=false: Business/Graph API — POST to graph.facebook.com
  */
 export async function getLongLivedToken(
   shortToken: string,

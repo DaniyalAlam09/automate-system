@@ -45,20 +45,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // FIX: Use the correct token exchange endpoint based on the flow type.
-    // - isDirect (Instagram Basic Display API): use api.instagram.com
-    // - Business Login / Graph API: use graph.facebook.com
     const tokenUrl = isDirect
       ? `https://api.instagram.com/oauth/access_token`
       : `https://graph.facebook.com/v19.0/oauth/access_token`;
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-      code: code,
-    });
 
     console.log("Token exchange params:", {
       tokenUrl,
@@ -70,22 +59,47 @@ export async function GET(request: NextRequest) {
       secretLength: clientSecret?.length,
     });
 
-    // Exchange code for short-lived token
-    const tokenRes = await fetch(tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params,
-    });
+    let tokenRes: Response;
+
+    if (isDirect) {
+      // Basic Display API requires multipart/form-data for code exchange
+      const formData = new FormData();
+      formData.append("client_id", clientId);
+      formData.append("client_secret", clientSecret);
+      formData.append("grant_type", "authorization_code");
+      formData.append("redirect_uri", redirectUri);
+      formData.append("code", code);
+
+      tokenRes = await fetch(tokenUrl, {
+        method: "POST",
+        body: formData,
+      });
+    } else {
+      // Graph API uses application/x-www-form-urlencoded
+      const params = new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: "authorization_code",
+        redirect_uri: redirectUri,
+        code: code,
+      });
+
+      tokenRes = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params,
+      });
+    }
 
     const responseText = await tokenRes.text();
-    let tokenData: any;
+    console.log("Raw token response:", responseText.substring(0, 300));
 
+    let tokenData: any;
     try {
       tokenData = JSON.parse(responseText);
     } catch (e) {
-      console.error("Token response parse error:", e, "Raw response:", responseText.substring(0, 200));
       throw new Error(
-        `Failed to parse token response: ${responseText.substring(0, 100)}`
+        `Instagram returned non-JSON (status ${tokenRes.status}): ${responseText.substring(0, 150)}`
       );
     }
 
@@ -104,12 +118,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // FIX: For isDirect (Basic Display API), the short-lived token field is
-    // "access_token" but the long-lived exchange uses a different endpoint.
-    // Make sure getLongLivedToken handles both flows correctly.
     const longLived = await getLongLivedToken(tokenData.access_token, isDirect);
 
-    // Get Instagram accounts linked to this Facebook account (or the direct IG account)
     const igAccounts = await getInstagramAccounts(longLived.access_token, isDirect);
 
     if (igAccounts.length === 0) {
@@ -127,7 +137,6 @@ export async function GET(request: NextRequest) {
       Date.now() + longLived.expires_in * 1000
     ).toISOString();
 
-    // Save each Instagram account found
     for (const account of igAccounts) {
       const { error: upsertError } = await supabase
         .from("instagram_accounts")
@@ -147,7 +156,11 @@ export async function GET(request: NextRequest) {
         );
 
       if (upsertError) {
-        console.error("Supabase upsert error for account", account.id, upsertError);
+        console.error(
+          "Supabase upsert error for account",
+          account.id,
+          upsertError
+        );
       }
     }
 

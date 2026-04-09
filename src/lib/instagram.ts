@@ -126,19 +126,26 @@ export async function getLongLivedToken(
     throw new Error(`Missing ${isDirect ? 'Instagram' : 'Meta'} app credentials`)
   }
 
-  let res: Response
+  let res: Response;
 
   if (isDirect) {
-    // Basic Display API: long-lived token exchange is a GET request
+    // For Instagram Login for Business, the long-lived exchange is generally handled via Graph API.
+    // However, some legacy flows used api.instagram.com. Given the system errors, 
+    // we'll try the Graph API with the Instagram credentials.
     const params = new URLSearchParams({
-      grant_type: 'ig_exchange_token',
+      grant_type: 'fb_exchange_token',
       client_id: clientId,
       client_secret: clientSecret,
-      access_token: shortToken,
+      fb_exchange_token: shortToken,
     })
-    res = await fetch(`${INSTAGRAM_API_BASE}/access_token?${params.toString()}`)
+    const url = `${GRAPH_API_BASE}/oauth/access_token`
+    console.log(`[getLongLivedToken] Exchanging direct token at: ${url}`)
+    res = await fetch(url, {
+      method: 'POST',
+      body: params
+    })
   } else {
-    // Business / Graph API: POST with fb_exchange_token
+    // Standard Business / Graph API
     const params = new URLSearchParams({
       grant_type: 'fb_exchange_token',
       client_id: clientId,

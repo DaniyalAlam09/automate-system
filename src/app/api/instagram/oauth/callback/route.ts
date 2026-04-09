@@ -118,7 +118,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const longLived = await getLongLivedToken(tokenData.access_token, isDirect);
+    let longLived: { access_token: string; expires_in: number };
+    
+    if (isDirect) {
+      // For Instagram Login for Business, the token returned from api.instagram.com 
+      // is already a long-lived token (usually 60 days).
+      console.log("Direct connection: Using token from Stage 1 as long-lived");
+      longLived = {
+        access_token: tokenData.access_token,
+        expires_in: 5183944 // ~60 days default
+      };
+    } else {
+      longLived = await getLongLivedToken(tokenData.access_token, isDirect);
+    }
 
     const igAccounts = await getInstagramAccounts(longLived.access_token, isDirect);
 

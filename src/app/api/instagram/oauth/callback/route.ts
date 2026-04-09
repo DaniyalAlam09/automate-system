@@ -36,10 +36,9 @@ export async function GET(request: NextRequest) {
     const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
     const clientSecret = isDirect ? process.env.INSTAGRAM_APP_SECRET : process.env.META_APP_SECRET
 
-    // For direct Instagram login, we use the specific Instagram OAuth endpoint
-    const tokenUrl = isDirect 
-      ? `https://api.instagram.com/oauth/access_token`
-      : `https://graph.facebook.com/v19.0/oauth/access_token`
+    // Always use the Graph API for token exchange for Business App IDs.
+    // The legacy api.instagram.com endpoint often fails for modern Business Login.
+    const tokenUrl = `https://graph.facebook.com/v19.0/oauth/access_token`
 
     const params = new URLSearchParams({
       client_id: clientId!,

@@ -96,13 +96,17 @@ export async function getLongLivedToken(shortToken: string, isDirect = false): P
 
   // Note: For Instagram Login for Business, the exchange endpoint is generally the same 
   // as Facebook Graph, but if it's the Basic Display API, it would be different.
-  const res = await fetch(
-    `${GRAPH_API_BASE}/oauth/access_token` +
-    `?grant_type=fb_exchange_token` +
-    `&client_id=${clientId}` +
-    `&client_secret=${clientSecret}` +
-    `&fb_exchange_token=${shortToken}`
-  )
+  const params = new URLSearchParams({
+    grant_type: 'fb_exchange_token',
+    client_id: clientId!,
+    client_secret: clientSecret!,
+    fb_exchange_token: shortToken,
+  })
+
+  const res = await fetch(`${GRAPH_API_BASE}/oauth/access_token`, {
+    method: 'POST',
+    body: params,
+  })
   const data = await res.json()
 
   if (data.error) {

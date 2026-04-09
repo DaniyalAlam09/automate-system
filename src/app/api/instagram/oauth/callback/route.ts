@@ -40,19 +40,30 @@ export async function GET(request: NextRequest) {
       ? `https://api.instagram.com/oauth/access_token`
       : `https://graph.facebook.com/v19.0/oauth/access_token`
 
-    // Exchange code for short-lived token
-    const tokenRes = await fetch(
-      tokenUrl +
-      `?client_id=${clientId}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-      `&client_secret=${clientSecret}` +
-      `&code=${code}` +
-      (isDirect ? '' : '&grant_type=authorization_code')
-    )
-    const tokenData = await tokenRes.json()
+    const params = new URLSearchParams({
+      client_id: clientId!,
+      client_secret: clientSecret!,
+      grant_type: isDirect ? 'authorization_code' : 'authorization_code',
+      redirect_uri: redirectUri,
+      code: code,
+    })
 
-    if (tokenData.error) {
-      throw new Error(tokenData.error.message)
+    // Exchange code for short-lived token
+    const tokenRes = await fetch(tokenUrl, {
+      method: 'POST',
+      body: params,
+    })
+
+    const responseText = await tokenRes.text()
+    let tokenData: any
+    try {
+      tokenData = JSON.parse(responseText)
+    } catch (e) {
+      throw new Error(`Failed to parse token response: ${responseText.substring(0, 100)}`)
+    }
+
+    if (tokenData.error || !tokenRes.ok) {
+      throw new Error(tokenData.error_message || tokenData.error?.message || 'Token exchange failed')
     }
 
     const longLived = await getLongLivedToken(tokenData.access_token, isDirect)

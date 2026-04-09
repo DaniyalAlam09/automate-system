@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    
     const redirectUri = `${appUrl}/api/instagram/oauth/callback`
 
     const clientId = isDirect ? process.env.INSTAGRAM_APP_ID : process.env.META_APP_ID
@@ -51,12 +52,21 @@ export async function GET(request: NextRequest) {
     // Exchange code for short-lived token
     const tokenRes = await fetch(tokenUrl, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
     })
 
     const responseText = await tokenRes.text()
     let tokenData: any
     try {
+       console.log('DEBUG:', {
+    isDirect,
+    clientId,
+    hasSecret: !!clientSecret,
+    secretLength: clientSecret?.length,
+    redirectUri,
+    tokenUrl,
+  })
       tokenData = JSON.parse(responseText)
     } catch (e) {
       throw new Error(`Failed to parse token response: ${responseText.substring(0, 100)}`)

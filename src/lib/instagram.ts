@@ -241,7 +241,7 @@ export async function createImageContainer(
     if (!data2.error) return data2
     console.warn(`[createImageContainer] Attempt 2 failed: ${data2.error.message}`)
 
-    // Strategy 3: graph.facebook.com with Header Auth (Facebook Graph compatibility)
+    // Strategy 3: graph.facebook.com with Header Auth
     console.log(`[createImageContainer] Attempt 3: POST to Facebook Graph (Header Auth)...`)
     const res3 = await fetch(`${GRAPH_API_BASE}/${igUserId}/media`, {
       method: 'POST',
@@ -253,11 +253,26 @@ export async function createImageContainer(
     })
     const data3 = await res3.json()
     if (!data3.error) return data3
+    console.warn(`[createImageContainer] Attempt 3 failed: ${data3.error.message}`)
+
+    // Strategy 4: Unversioned Facebook Graph (Last ditch for IGAF tokens)
+    console.log(`[createImageContainer] Attempt 4: POST to Unversioned Facebook Graph...`)
+    const res4 = await fetch(`https://graph.facebook.com/${igUserId}/media`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ image_url: imageUrl, caption })
+    })
+    const data4 = await res4.json()
+    if (!data4.error) return data4
     
-    // If all fail, throw the last error
-    throw new Error(data3.error.message)
+    // If all fail, throw a detailed combined error
+    throw new Error(`All attempts failed. Last: ${data4.error.message}`)
   } catch (err: any) {
-    throw new Error(`Instagram publishing failed after all attempts: ${err.message}`)
+    console.error(`[createImageContainer] Fatal:`, err)
+    throw new Error(`Instagram publishing failed: ${err.message}`)
   }
 }
 /**

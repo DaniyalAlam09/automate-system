@@ -213,28 +213,52 @@ export async function createImageContainer(
   imageUrl: string,
   caption: string
 ): Promise<IGMediaContainer> {
-  const apiBase = getApiBase(accessToken)
+  // TRIPLE FALLBACK STRATEGY for Standalone Instagram Login (IGAF... tokens)
+  
+  // Strategy 1: graph.instagram.com with Query Params (Most likely for new flow)
   const query = new URLSearchParams({
     image_url: imageUrl,
     caption,
     access_token: accessToken,
   })
-  const url = `${apiBase}/${igUserId}/media?${query.toString()}`
+  const url1 = `https://graph.instagram.com/v21.0/${igUserId}/media?${query.toString()}`
+  console.log(`[createImageContainer] Attempt 1: POST to Instagram Graph (Query Params)...`)
+  
+  try {
+    const res1 = await fetch(url1, { method: 'POST' })
+    const data1 = await res1.json()
+    if (!data1.error) return data1
+    console.warn(`[createImageContainer] Attempt 1 failed: ${data1.error.message}`)
+    
+    // Strategy 2: graph.instagram.com with JSON body
+    console.log(`[createImageContainer] Attempt 2: POST to Instagram Graph (JSON Body)...`)
+    const res2 = await fetch(`https://graph.instagram.com/v21.0/${igUserId}/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_url: imageUrl, caption, access_token: accessToken })
+    })
+    const data2 = await res2.json()
+    if (!data2.error) return data2
+    console.warn(`[createImageContainer] Attempt 2 failed: ${data2.error.message}`)
 
-  console.log(`[createImageContainer] POST to: ${url.replace(accessToken, '***')}`)
-
-  const res = await fetch(url, {
-    method: 'POST',
-  })
-
-  const data = await res.json()
-  console.log(`[createImageContainer] Response:`, JSON.stringify(data))
-
-  if (data.error) {
-    throw new Error(`Failed to create image container on ${apiBase}: ${data.error.message} (${data.error.type})`)
+    // Strategy 3: graph.facebook.com with Header Auth (Facebook Graph compatibility)
+    console.log(`[createImageContainer] Attempt 3: POST to Facebook Graph (Header Auth)...`)
+    const res3 = await fetch(`${GRAPH_API_BASE}/${igUserId}/media`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ image_url: imageUrl, caption })
+    })
+    const data3 = await res3.json()
+    if (!data3.error) return data3
+    
+    // If all fail, throw the last error
+    throw new Error(data3.error.message)
+  } catch (err: any) {
+    throw new Error(`Instagram publishing failed after all attempts: ${err.message}`)
   }
-
-  return data
 }
 /**
  * Create a reel media container on Instagram

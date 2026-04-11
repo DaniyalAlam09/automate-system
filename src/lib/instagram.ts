@@ -7,9 +7,10 @@ const INSTAGRAM_GRAPH_BASE = 'https://graph.instagram.com/v19.0'
  * and return the correct Graph API base URL.
  */
 function getApiBase(accessToken: string): string {
-  // IMPORTANT: For Content Publishing (media/media_publish), Meta documentation 
-  // currently specifies hitting graph.facebook.com. 
-  // Hit graph.instagram.com only for account discovery/info fetching if needed.
+  if (accessToken.startsWith('IGAF') || accessToken.startsWith('IG')) {
+    // For standalone Instagram Login for Business tokens
+    return 'https://graph.instagram.com/v21.0'
+  }
   return GRAPH_API_BASE
 }
 
@@ -214,27 +215,27 @@ export async function createImageContainer(
 ): Promise<IGMediaContainer> {
   const apiBase = getApiBase(accessToken)
   const url = `${apiBase}/${igUserId}/media`
-
-  // Always send as POST body, never as query params
-  const params = new URLSearchParams({
+  
+  const body = {
     image_url: imageUrl,
     caption,
     access_token: accessToken,
-  })
+  }
 
   console.log(`[createImageContainer] POST to: ${url} (token hidden)`)
+  console.log(`[createImageContainer] Body:`, JSON.stringify({ ...body, access_token: '***' }))
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
 
   const data = await res.json()
   console.log(`[createImageContainer] Response:`, JSON.stringify(data))
 
   if (data.error) {
-    throw new Error(`Failed to create image container on ${apiBase}: ${data.error.message}`)
+    throw new Error(`Failed to create image container on ${apiBase}: ${data.error.message} (${data.error.type})`)
   }
 
   return data
@@ -248,19 +249,25 @@ export async function createReelContainer(
   videoUrl: string,
   caption: string
 ): Promise<IGMediaContainer> {
-  const params = new URLSearchParams({
+  const apiBase = getApiBase(accessToken)
+  const url = `${apiBase}/${igUserId}/media`
+
+  const body = {
     media_type: 'REELS',
     video_url: videoUrl,
     caption,
     access_token: accessToken,
-  })
+  }
 
-  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media`, {
+  console.log(`[createReelContainer] POST to: ${url}`)
+
+  const res = await fetch(url, {
     method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: params,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
   const data = await res.json()
+  console.log(`[createReelContainer] Response:`, JSON.stringify(data))
 
   if (data.error) {
     throw new Error(`Failed to create reel container: ${data.error.message}`)
@@ -300,16 +307,23 @@ export async function publishMediaContainer(
   accessToken: string,
   containerId: string
 ): Promise<IGPublishResult> {
-  const params = new URLSearchParams({
+  const apiBase = getApiBase(accessToken)
+  const url = `${apiBase}/${igUserId}/media_publish`
+
+  const body = {
     creation_id: containerId,
     access_token: accessToken,
-  })
+  }
 
-  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media_publish`, {
+  console.log(`[publishMediaContainer] POST to: ${url}`)
+
+  const res = await fetch(url, {
     method: 'POST',
-    body: params,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
   const data = await res.json()
+  console.log(`[publishMediaContainer] Response:`, JSON.stringify(data))
 
   if (data.error) {
     throw new Error(`Failed to publish: ${data.error.message}`)

@@ -29,27 +29,32 @@ export async function getInstagramAccounts(
 
   if (isDirect) {
     try {
+      // For Instagram Login for Business, the /me endpoint on graph.facebook.com 
+      // returns the direct business accounts associated with the token.
       const res = await fetch(
-        `${INSTAGRAM_API_BASE}/me?fields=id,username,account_type,profile_picture_url&access_token=${accessToken}`
+        `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url}&access_token=${accessToken}`
       )
       const data = await res.json()
-      console.log('Basic Display API user response:', JSON.stringify(data).substring(0, 500))
+      console.log('Direct business accounts response:', JSON.stringify(data).substring(0, 500))
 
       if (data.error) {
-        console.error('Basic Display API error:', data.error)
+        console.error('Direct discovery error:', data.error)
         return []
       }
 
-      if (data.id) {
-        accounts.push({
-          id: data.id,
-          username: data.username || data.id,
-          profile_picture_url: data.profile_picture_url || '',
-          account_type: data.account_type || 'PERSONAL',
-        })
+      const directAccounts = data.instagram_business_accounts?.data || []
+      if (directAccounts.length > 0) {
+        for (const ig of directAccounts) {
+          accounts.push({
+            id: ig.id,
+            username: ig.username || ig.id,
+            profile_picture_url: ig.profile_picture_url || '',
+            account_type: 'BUSINESS',
+          })
+        }
       }
     } catch (err) {
-      console.error('Error fetching IG account via Basic Display API:', err)
+      console.error('Error fetching IG account via Direct Graph API:', err)
     }
 
     return accounts
@@ -130,8 +135,6 @@ export async function getLongLivedToken(
 
   if (isDirect) {
     // For Instagram Login for Business, the long-lived exchange is generally handled via Graph API.
-    // However, some legacy flows used api.instagram.com. Given the system errors, 
-    // we'll try the Graph API with the Instagram credentials.
     const params = new URLSearchParams({
       grant_type: 'fb_exchange_token',
       client_id: clientId,
@@ -139,7 +142,7 @@ export async function getLongLivedToken(
       fb_exchange_token: shortToken,
     })
     const url = `${GRAPH_API_BASE}/oauth/access_token`
-    console.log(`[getLongLivedToken] Exchanging direct token at: ${url}`)
+    console.log(`[getLongLivedToken] Stage 2: Exchanging direct token at Graph API...`)
     res = await fetch(url, {
       method: 'POST',
       body: params
@@ -152,6 +155,7 @@ export async function getLongLivedToken(
       client_secret: clientSecret,
       fb_exchange_token: shortToken,
     })
+    console.log(`[getLongLivedToken] Stage 2: Exchanging Facebook token at Graph API...`)
     res = await fetch(`${GRAPH_API_BASE}/oauth/access_token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -160,12 +164,12 @@ export async function getLongLivedToken(
   }
 
   const data = await res.json()
+  console.log('[getLongLivedToken] Stage 2 Response Status:', res.status)
+  if (!res.ok) console.error('[getLongLivedToken] Stage 2 Error:', JSON.stringify(data))
 
-  console.log('Long-lived token response:', {
+  console.log('[getLongLivedToken] Summary:', {
     isDirect,
     status: res.status,
-    hasError: !!data.error,
-    errorMessage: data.error?.message,
     hasToken: !!data.access_token,
   })
 

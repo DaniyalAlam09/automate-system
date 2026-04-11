@@ -1,10 +1,31 @@
 'use client'
 
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { InstagramAccount } from '@/types'
 
 interface Props { accounts: InstagramAccount[] }
 
 export default function ConnectInstagram({ accounts }: Props) {
+  const [removing, setRemoving] = useState<string | null>(null)
+  const router = useRouter()
+
+  async function handleDisconnect(accountId: string, username: string) {
+    if (!confirm(`Remove @${username}? This will disconnect the account.`)) return
+    setRemoving(accountId)
+    try {
+      const res = await fetch(`/api/instagram/disconnect?id=${accountId}`, { method: 'DELETE' })
+      if (res.ok) {
+        router.refresh()
+      } else {
+        alert('Failed to remove account')
+      }
+    } catch {
+      alert('Failed to remove account')
+    }
+    setRemoving(null)
+  }
+
   return (
     <section className="glass-card" style={{ padding:'18px 20px', marginBottom:0 }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: accounts.length > 0 ? 14 : 0, gap: 12, flexWrap: 'wrap' }}>
@@ -35,6 +56,26 @@ export default function ConnectInstagram({ accounts }: Props) {
               )}
               <span style={{ fontSize:13, color:'#dbe8ff' }}>@{account.username}</span>
               <div style={{ width:6, height:6, borderRadius:'50%', background:'#34d399', flexShrink:0 }} />
+              <button
+                onClick={() => handleDisconnect(account.id, account.username)}
+                disabled={removing === account.id}
+                title="Disconnect account"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: removing === account.id ? 'wait' : 'pointer',
+                  padding: '2px 4px',
+                  marginLeft: 4,
+                  color: '#64748b',
+                  fontSize: 14,
+                  lineHeight: 1,
+                  transition: 'color 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#f87171')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = '#64748b')}
+              >
+                {removing === account.id ? '...' : '✕'}
+              </button>
             </div>
           ))}
         </div>

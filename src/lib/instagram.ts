@@ -87,19 +87,24 @@ export async function getInstagramAccounts(
     const url = `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
     const pagesRes = await fetch(url);
     const pagesData = await pagesRes.json();
-    console.log('[getInstagramAccounts] Step 1 Response Status:', pagesRes.status);
+    console.log('[getInstagramAccounts] Standard Step 1 Response:', JSON.stringify(pagesData));
 
     if (pagesData.data) {
       for (const page of pagesData.data) {
         if (page.instagram_business_account) {
+          console.log(`[getInstagramAccounts] Found IG account ${page.instagram_business_account.username} on page ${page.id}`);
           accounts.push({
             id: page.instagram_business_account.id,
             username: page.instagram_business_account.username,
             profile_picture_url: page.instagram_business_account.profile_picture_url || '',
             account_type: 'BUSINESS',
           });
+        } else {
+          console.log(`[getInstagramAccounts] Page ${page.id} (${page.name}) has no linked IG Business account.`);
         }
       }
+    } else if (pagesData.error) {
+      console.error('[getInstagramAccounts] Step 1 Error:', pagesData.error.message);
     }
   } catch (err) {
     console.error('[getInstagramAccounts] Step 1 Exception:', err);
@@ -112,7 +117,7 @@ export async function getInstagramAccounts(
       const url = `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url},instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`;
       const userRes = await fetch(url);
       const userData = await userRes.json();
-      console.log('[getInstagramAccounts] Step 2 Response Status:', userRes.status);
+      console.log('[getInstagramAccounts] Standard Step 2 Response:', JSON.stringify(userData));
       
       const directAccounts = [
         ...(userData.instagram_business_accounts?.data || []),
@@ -120,6 +125,7 @@ export async function getInstagramAccounts(
       ];
 
       for (const ig of directAccounts) {
+        console.log(`[getInstagramAccounts] Found IG account ${ig.username} direct on User node`);
         accounts.push({
           id: ig.id,
           username: ig.username || ig.id,

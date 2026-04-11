@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
       longLived = await getLongLivedToken(tokenData.access_token, isDirect);
     }
 
-    const igAccounts = await getInstagramAccounts(longLived.access_token, isDirect);
+    const igAccounts = await getInstagramAccounts(longLived.access_token, isDirect, tokenData.user_id);
 
     if (igAccounts.length === 0) {
       const errorMessage = encodeURIComponent(

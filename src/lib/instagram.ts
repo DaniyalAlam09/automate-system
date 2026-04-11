@@ -23,37 +23,51 @@ export interface IGUserInfo {
  */
 export async function getInstagramAccounts(
   accessToken: string,
-  isDirect = false
+  isDirect = false,
+  igUserId?: string | number
 ): Promise<IGUserInfo[]> {
   const accounts: IGUserInfo[] = []
 
   if (isDirect) {
-    console.log('[getInstagramAccounts] Step 1 (Direct): Fetching business accounts from Instagram Graph API...');
-    try {
-      // For Instagram Login for Business, we use graph.instagram.com instead of graph.facebook.com
-      const url = `https://graph.instagram.com/me?fields=id,username,profile_picture_url&access_token=${accessToken}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      console.log('[getInstagramAccounts] Step 1 Response Status:', res.status);
+    console.log('[getInstagramAccounts] Step 1 (Direct): Using user_id from token response...');
 
-      if (data.error || !res.ok) {
-        console.error('[getInstagramAccounts] Step 1 Error:', JSON.stringify(data.error || data));
-        return [];
-      }
+    // The token response from api.instagram.com already includes the user_id.
+    // We use it to query the Facebook Graph API for the account details.
+    if (igUserId) {
+      try {
+        const url = `${GRAPH_API_BASE}/${igUserId}?fields=id,username,profile_picture_url&access_token=${accessToken}`;
+        console.log('[getInstagramAccounts] Querying:', url.replace(accessToken, '***'));
+        const res = await fetch(url);
+        const data = await res.json();
+        console.log('[getInstagramAccounts] Step 1 Response Status:', res.status);
 
-      // In the direct API, /me IS the Instagram user/business account
-      if (data.id) {
-        accounts.push({
-          id: data.id,
-          username: data.username || data.id,
-          profile_picture_url: data.profile_picture_url || '',
-          account_type: 'BUSINESS',
-        });
+        if (data.error || !res.ok) {
+          console.error('[getInstagramAccounts] Step 1 Error:', JSON.stringify(data.error || data));
+        } else if (data.id) {
+          accounts.push({
+            id: data.id,
+            username: data.username || String(data.id),
+            profile_picture_url: data.profile_picture_url || '',
+            account_type: 'BUSINESS',
+          });
+        }
+      } catch (err) {
+        console.error('[getInstagramAccounts] Step 1 Exception:', err);
       }
-      console.log(`[getInstagramAccounts] Found ${accounts.length} direct accounts`);
-    } catch (err) {
-      console.error('[getInstagramAccounts] Step 1 Exception:', err);
     }
+
+    // If the above didn't work, use the igUserId directly as a minimal account
+    if (accounts.length === 0 && igUserId) {
+      console.log('[getInstagramAccounts] Fallback: Using user_id directly as account ID');
+      accounts.push({
+        id: String(igUserId),
+        username: String(igUserId),
+        profile_picture_url: '',
+        account_type: 'BUSINESS',
+      });
+    }
+
+    console.log(`[getInstagramAccounts] Found ${accounts.length} direct accounts`);
     return accounts;
   }
 

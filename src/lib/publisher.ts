@@ -38,7 +38,15 @@ export async function publishPost(post: ScheduledPost & { instagram_accounts: { 
   await logEvent(post.id, 'publishing', 'Starting publish process')
 
   try {
-    const { ig_user_id, access_token } = post.instagram_accounts
+    const { ig_user_id, access_token } = (post.instagram_accounts as any) || {}
+
+    if (!ig_user_id || !access_token) {
+      console.error(`[publishPost] Missing account data for post ${post.id}`, {
+        hasAccounts: !!post.instagram_accounts,
+        postRaw: JSON.stringify(post)
+      })
+      throw new Error('Instagram account data is missing or corrupted')
+    }
     const caption = buildCaption(post.caption, post.hashtags)
 
     console.log(`[publishPost] Caption length: ${caption.length}, media_urls: ${post.media_urls?.length}`)

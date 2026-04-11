@@ -214,21 +214,17 @@ export async function createImageContainer(
   caption: string
 ): Promise<IGMediaContainer> {
   const apiBase = getApiBase(accessToken)
-  const url = `${apiBase}/${igUserId}/media`
-  
-  const body = {
+  const query = new URLSearchParams({
     image_url: imageUrl,
     caption,
     access_token: accessToken,
-  }
+  })
+  const url = `${apiBase}/${igUserId}/media?${query.toString()}`
 
-  console.log(`[createImageContainer] POST to: ${url} (token hidden)`)
-  console.log(`[createImageContainer] Body:`, JSON.stringify({ ...body, access_token: '***' }))
+  console.log(`[createImageContainer] POST to: ${url.replace(accessToken, '***')}`)
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   })
 
   const data = await res.json()
@@ -250,21 +246,18 @@ export async function createReelContainer(
   caption: string
 ): Promise<IGMediaContainer> {
   const apiBase = getApiBase(accessToken)
-  const url = `${apiBase}/${igUserId}/media`
-
-  const body = {
+  const query = new URLSearchParams({
     media_type: 'REELS',
     video_url: videoUrl,
     caption,
     access_token: accessToken,
-  }
+  })
+  const url = `${apiBase}/${igUserId}/media?${query.toString()}`
 
-  console.log(`[createReelContainer] POST to: ${url}`)
+  console.log(`[createReelContainer] POST to: ${url.replace(accessToken, '***')}`)
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   })
   const data = await res.json()
   console.log(`[createReelContainer] Response:`, JSON.stringify(data))
@@ -308,19 +301,16 @@ export async function publishMediaContainer(
   containerId: string
 ): Promise<IGPublishResult> {
   const apiBase = getApiBase(accessToken)
-  const url = `${apiBase}/${igUserId}/media_publish`
-
-  const body = {
+  const query = new URLSearchParams({
     creation_id: containerId,
     access_token: accessToken,
-  }
+  })
+  const url = `${apiBase}/${igUserId}/media_publish?${query.toString()}`
 
-  console.log(`[publishMediaContainer] POST to: ${url}`)
+  console.log(`[publishMediaContainer] POST to: ${url.replace(accessToken, '***')}`)
 
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
   })
   const data = await res.json()
   console.log(`[publishMediaContainer] Response:`, JSON.stringify(data))

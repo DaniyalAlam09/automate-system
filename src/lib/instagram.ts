@@ -1,6 +1,6 @@
 const GRAPH_API_BASE = 'https://graph.facebook.com/v19.0'
 const INSTAGRAM_API_BASE = 'https://api.instagram.com'
-const INSTAGRAM_GRAPH_BASE = 'https://graph.instagram.com/v21.0'
+const INSTAGRAM_GRAPH_BASE = 'https://graph.instagram.com/v19.0'
 
 /**
  * Detect whether a token is from Instagram Login (IGAF...) or Facebook Login (EAA...)
@@ -220,14 +220,19 @@ export async function createImageContainer(
     access_token: accessToken,
   })
 
-  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media`, {
+  const apiBase = getApiBase(accessToken)
+  const url = `${apiBase}/${igUserId}/media`
+  console.log(`[createImageContainer] POST to: ${url.replace(accessToken, '***')}`)
+
+  const res = await fetch(url, {
     method: 'POST',
     body: params,
   })
   const data = await res.json()
+  console.log(`[createImageContainer] Response:`, JSON.stringify(data))
 
   if (data.error) {
-    throw new Error(`Failed to create image container: ${data.error.message}`)
+    throw new Error(`Failed to create image container on ${apiBase}: ${data.error.message}`)
   }
 
   return data

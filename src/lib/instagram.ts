@@ -214,19 +214,17 @@ export async function createImageContainer(
   imageUrl: string,
   caption: string
 ): Promise<IGMediaContainer> {
-  const params = new URLSearchParams({
+  const apiBase = getApiBase(accessToken)
+  const query = new URLSearchParams({
     image_url: imageUrl,
     caption,
     access_token: accessToken,
   })
-
-  const apiBase = getApiBase(accessToken)
-  const url = `${apiBase}/${igUserId}/media`
+  const url = `${apiBase}/${igUserId}/media?${query.toString()}`
   console.log(`[createImageContainer] POST to: ${url.replace(accessToken, '***')}`)
 
   const res = await fetch(url, {
     method: 'POST',
-    body: params,
   })
   const data = await res.json()
   console.log(`[createImageContainer] Response:`, JSON.stringify(data))

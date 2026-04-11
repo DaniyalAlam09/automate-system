@@ -43,8 +43,6 @@ export async function getInstagramAccounts(
 
   if (isDirect) {
     console.log('[getInstagramAccounts] Step 1 (Direct): Fetching account from Instagram Graph API...');
-
-    // Try graph.instagram.com/me first (works with Instagram access tokens)
     if (igUserId) {
       try {
         const url = `https://graph.instagram.com/v21.0/me?fields=id,username,profile_picture_url,account_type&access_token=${accessToken}`;
@@ -62,11 +60,10 @@ export async function getInstagramAccounts(
           });
         }
       } catch (err) {
-        console.error('[getInstagramAccounts] Step 1 Exception:', err);
+        console.error('[getInstagramAccounts] Direct Step 1 Exception:', err);
       }
     }
 
-    // Fallback: use igUserId directly  
     if (accounts.length === 0 && igUserId) {
       console.log('[getInstagramAccounts] Fallback: Using user_id directly');
       accounts.push({
@@ -81,38 +78,46 @@ export async function getInstagramAccounts(
     return accounts;
   }
 
-  // 1. Get Instagram Business accounts via Facebook pages
-  console.log('[getInstagramAccounts] Step 1 (Standard): Fetching pages from Graph API...');
+  // Standard Facebook-linked Flow
+  console.log('[getInstagramAccounts] Standard Step 1: Fetching pages from Graph API...');
   try {
-    const url = `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
-    const pagesRes = await fetch(url);
+    const pagesUrl = `${GRAPH_API_BASE}/me/accounts?fields=id,name&access_token=${accessToken}`;
+    const pagesRes = await fetch(pagesUrl);
     const pagesData = await pagesRes.json();
-    console.log('[getInstagramAccounts] Standard Step 1 Response:', JSON.stringify(pagesData));
+    console.log('[getInstagramAccounts] Standard Step 1 (Simple Pages List):', JSON.stringify(pagesData));
 
-    if (pagesData.data) {
+    if (pagesData.data && pagesData.data.length > 0) {
       for (const page of pagesData.data) {
-        if (page.instagram_business_account) {
-          console.log(`[getInstagramAccounts] Found IG account ${page.instagram_business_account.username} on page ${page.id}`);
-          accounts.push({
-            id: page.instagram_business_account.id,
-            username: page.instagram_business_account.username,
-            profile_picture_url: page.instagram_business_account.profile_picture_url || '',
-            account_type: 'BUSINESS',
-          });
-        } else {
-          console.log(`[getInstagramAccounts] Page ${page.id} (${page.name}) has no linked IG Business account.`);
+        console.log(`[getInstagramAccounts] Probing page ${page.id} (${page.name}) for IG accounts...`);
+        try {
+          const detailUrl = `${GRAPH_API_BASE}/${page.id}?fields=instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
+          const detailRes = await fetch(detailUrl);
+          const detailData = await detailRes.json();
+          console.log(`[getInstagramAccounts] Page ${page.id} detail response:`, JSON.stringify(detailData));
+
+          if (detailData.instagram_business_account) {
+            accounts.push({
+              id: detailData.instagram_business_account.id,
+              username: detailData.instagram_business_account.username,
+              profile_picture_url: detailData.instagram_business_account.profile_picture_url || '',
+              account_type: 'BUSINESS',
+            });
+            console.log(`[getInstagramAccounts] Successfully found IG account: ${detailData.instagram_business_account.username}`);
+          }
+        } catch (detailErr) {
+          console.error(`[getInstagramAccounts] Error probing page ${page.id}:`, detailErr);
         }
       }
-    } else if (pagesData.error) {
-      console.error('[getInstagramAccounts] Step 1 Error:', pagesData.error.message);
+    } else if (pagesData.data && pagesData.data.length === 0) {
+      console.warn('[getInstagramAccounts] No Facebook Pages returned. Is the page checkboxed in the OAuth popup?');
     }
   } catch (err) {
-    console.error('[getInstagramAccounts] Step 1 Exception:', err);
+    console.error('[getInstagramAccounts] Standard Step 1 Exception:', err);
   }
 
   // 2. Fallback: Try to get Instagram accounts directly from the User node
   if (accounts.length === 0) {
-    console.log('[getInstagramAccounts] Step 2: Trying user node fallback...');
+    console.log('[getInstagramAccounts] Standard Step 2: Trying user node fallback...');
     try {
       const url = `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url},instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`;
       const userRes = await fetch(url);
@@ -134,7 +139,7 @@ export async function getInstagramAccounts(
         });
       }
     } catch (err) {
-      console.error('[getInstagramAccounts] Step 2 Exception:', err);
+      console.error('[getInstagramAccounts] Standard Step 2 Exception:', err);
     }
   }
 

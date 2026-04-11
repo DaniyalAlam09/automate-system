@@ -25,7 +25,7 @@ console.log("userigAccounts",igAccounts)
     .eq('user_id', user.id)
     .order('scheduled_at', { ascending: true })
     .limit(20)
-
+console.log("recentPosts",recentPosts)
   const params = await searchParams
 
   return (

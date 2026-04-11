@@ -215,17 +215,23 @@ export async function createImageContainer(
   caption: string
 ): Promise<IGMediaContainer> {
   const apiBase = getApiBase(accessToken)
-  const query = new URLSearchParams({
+  const url = `${apiBase}/${igUserId}/media`
+
+  // Always send as POST body, never as query params
+  const params = new URLSearchParams({
     image_url: imageUrl,
     caption,
     access_token: accessToken,
   })
-  const url = `${apiBase}/${igUserId}/media?${query.toString()}`
-  console.log(`[createImageContainer] POST to: ${url.replace(accessToken, '***')}`)
+
+  console.log(`[createImageContainer] POST to: ${url} (token hidden)`)
 
   const res = await fetch(url, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params,
   })
+
   const data = await res.json()
   console.log(`[createImageContainer] Response:`, JSON.stringify(data))
 
@@ -235,7 +241,6 @@ export async function createImageContainer(
 
   return data
 }
-
 /**
  * Create a reel media container on Instagram
  */
@@ -254,6 +259,7 @@ export async function createReelContainer(
 
   const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media`, {
     method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params,
   })
   const data = await res.json()

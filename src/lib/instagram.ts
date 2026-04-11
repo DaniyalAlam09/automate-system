@@ -7,9 +7,9 @@ const INSTAGRAM_GRAPH_BASE = 'https://graph.instagram.com/v19.0'
  * and return the correct Graph API base URL.
  */
 function getApiBase(accessToken: string): string {
-  if (accessToken.startsWith('IGAF') || accessToken.startsWith('IG')) {
-    return INSTAGRAM_GRAPH_BASE
-  }
+  // IMPORTANT: For Content Publishing (media/media_publish), Meta documentation 
+  // currently specifies hitting graph.facebook.com. 
+  // Hit graph.instagram.com only for account discovery/info fetching if needed.
   return GRAPH_API_BASE
 }
 
@@ -50,7 +50,7 @@ export async function getInstagramAccounts(
         console.log('[getInstagramAccounts] Querying graph.instagram.com/me...');
         const res = await fetch(url);
         const data = await res.json();
-        console.log('[getInstagramAccounts] Step 1 Response Status:', res.status);
+        console.log('[getInstagramAccounts] Direct Response:', JSON.stringify(data));
 
         if (!data.error && res.ok && data.id) {
           accounts.push({
@@ -59,8 +59,6 @@ export async function getInstagramAccounts(
             profile_picture_url: data.profile_picture_url || '',
             account_type: data.account_type || 'BUSINESS',
           });
-        } else {
-          console.error('[getInstagramAccounts] Step 1 Error:', JSON.stringify(data.error || data));
         }
       } catch (err) {
         console.error('[getInstagramAccounts] Step 1 Exception:', err);

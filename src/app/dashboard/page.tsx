@@ -9,7 +9,6 @@ export default async function DashboardPage({
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-console.log("user",user)
   if (!user) redirect('/auth')
 
   const { data: igAccounts } = await supabase
@@ -17,6 +16,7 @@ console.log("user",user)
     .select('*')
     .eq('user_id', user.id)
     .eq('is_active', true)
+console.log("userigAccounts",igAccounts)
   
 
   const { data: recentPosts } = await supabase

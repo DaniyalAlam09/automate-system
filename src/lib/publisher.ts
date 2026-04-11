@@ -26,6 +26,9 @@ async function logEvent(
 export async function publishPost(post: ScheduledPost & { instagram_accounts: { ig_user_id: string; access_token: string } }) {
   const supabase = await createAdminClient()
 
+  console.log(`[publishPost] Starting publish for post ${post.id}, media_type: ${post.media_type}`)
+  console.log(`[publishPost] IG User ID: ${post.instagram_accounts.ig_user_id}, has token: ${!!post.instagram_accounts.access_token}`)
+
   // Mark as publishing
   await supabase
     .from('scheduled_posts')
@@ -38,9 +41,12 @@ export async function publishPost(post: ScheduledPost & { instagram_accounts: { 
     const { ig_user_id, access_token } = post.instagram_accounts
     const caption = buildCaption(post.caption, post.hashtags)
 
+    console.log(`[publishPost] Caption length: ${caption.length}, media_urls: ${post.media_urls?.length}`)
+
     let containerId: string
 
     if (post.media_type === 'IMAGE') {
+      console.log(`[publishPost] Creating image container with URL: ${post.media_urls[0]?.substring(0, 80)}...`)
       const container = await createImageContainer(
         ig_user_id,
         access_token,
@@ -48,7 +54,9 @@ export async function publishPost(post: ScheduledPost & { instagram_accounts: { 
         caption
       )
       containerId = container.id
+      console.log(`[publishPost] Image container created: ${containerId}`)
     } else if (post.media_type === 'REEL') {
+      console.log(`[publishPost] Creating reel container with URL: ${post.media_urls[0]?.substring(0, 80)}...`)
       const container = await createReelContainer(
         ig_user_id,
         access_token,
@@ -56,16 +64,20 @@ export async function publishPost(post: ScheduledPost & { instagram_accounts: { 
         caption
       )
       containerId = container.id
+      console.log(`[publishPost] Reel container created: ${containerId}`)
 
       // Wait for video processing
       await logEvent(post.id, 'processing', 'Waiting for media to process...')
       await waitForMediaReady(containerId, access_token)
+      console.log(`[publishPost] Reel media ready`)
     } else {
       throw new Error(`Unsupported media type: ${post.media_type}`)
     }
 
     // Publish the container
+    console.log(`[publishPost] Publishing container ${containerId}...`)
     const result = await publishMediaContainer(ig_user_id, access_token, containerId)
+    console.log(`[publishPost] Published! IG Post ID: ${result.id}`)
     const permalink = await getPostPermalink(result.id, access_token)
 
     // Mark as published

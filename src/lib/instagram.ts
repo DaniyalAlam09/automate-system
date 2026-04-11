@@ -1,5 +1,17 @@
 const GRAPH_API_BASE = 'https://graph.facebook.com/v19.0'
 const INSTAGRAM_API_BASE = 'https://api.instagram.com'
+const INSTAGRAM_GRAPH_BASE = 'https://graph.instagram.com/v21.0'
+
+/**
+ * Detect whether a token is from Instagram Login (IGAF...) or Facebook Login (EAA...)
+ * and return the correct Graph API base URL.
+ */
+function getApiBase(accessToken: string): string {
+  if (accessToken.startsWith('IGAF') || accessToken.startsWith('IG')) {
+    return INSTAGRAM_GRAPH_BASE
+  }
+  return GRAPH_API_BASE
+}
 
 export interface IGMediaContainer {
   id: string
@@ -209,7 +221,7 @@ export async function createImageContainer(
     access_token: accessToken,
   })
 
-  const res = await fetch(`${GRAPH_API_BASE}/${igUserId}/media`, {
+  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media`, {
     method: 'POST',
     body: params,
   })
@@ -238,7 +250,7 @@ export async function createReelContainer(
     access_token: accessToken,
   })
 
-  const res = await fetch(`${GRAPH_API_BASE}/${igUserId}/media`, {
+  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media`, {
     method: 'POST',
     body: params,
   })
@@ -261,7 +273,7 @@ export async function waitForMediaReady(
 ): Promise<boolean> {
   for (let i = 0; i < maxAttempts; i++) {
     const res = await fetch(
-      `${GRAPH_API_BASE}/${containerId}?fields=status_code&access_token=${accessToken}`
+      `${getApiBase(accessToken)}/${containerId}?fields=status_code&access_token=${accessToken}`
     )
     const data = await res.json()
 
@@ -287,7 +299,7 @@ export async function publishMediaContainer(
     access_token: accessToken,
   })
 
-  const res = await fetch(`${GRAPH_API_BASE}/${igUserId}/media_publish`, {
+  const res = await fetch(`${getApiBase(accessToken)}/${igUserId}/media_publish`, {
     method: 'POST',
     body: params,
   })
@@ -308,7 +320,7 @@ export async function getPostPermalink(
   accessToken: string
 ): Promise<string | null> {
   const res = await fetch(
-    `${GRAPH_API_BASE}/${postId}?fields=permalink&access_token=${accessToken}`
+    `${getApiBase(accessToken)}/${postId}?fields=permalink&access_token=${accessToken}`
   )
   const data = await res.json()
   return data.permalink || null

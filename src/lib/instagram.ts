@@ -255,24 +255,32 @@ export async function createImageContainer(
     if (!data3.error) return data3
     console.warn(`[createImageContainer] Attempt 3 failed: ${data3.error.message}`)
 
-    // Strategy 4: Unversioned Facebook Graph (Last ditch for IGAF tokens)
-    console.log(`[createImageContainer] Attempt 4: POST to Unversioned Facebook Graph...`)
-    const res4 = await fetch(`https://graph.facebook.com/${igUserId}/media`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({ image_url: imageUrl, caption })
-    })
+    // Strategy 4: graph.instagram.com/v21.0/me/media (using 'me' node)
+    console.log(`[createImageContainer] Attempt 4: POST to Instagram Graph ('me' node)...`)
+    const url4 = `https://graph.instagram.com/v21.0/me/media?image_url=${encodeURIComponent(imageUrl)}&caption=${encodeURIComponent(caption)}&access_token=${accessToken}`
+    const res4 = await fetch(url4, { method: 'POST' })
     const data4 = await res4.json()
     if (!data4.error) return data4
-    
-    // If all fail, throw a detailed combined error
-    throw new Error(`All attempts failed. Last: ${data4.error.message}`)
+    console.warn(`[createImageContainer] Attempt 4 failed: ${data4.error.message}`)
+
+    // Strategy 5: graph.instagram.com with FormData (Multipart fallback)
+    console.log(`[createImageContainer] Attempt 5: POST to Instagram Graph (FormData)...`)
+    const formData = new FormData()
+    formData.append('image_url', imageUrl)
+    formData.append('caption', caption)
+    formData.append('access_token', accessToken)
+    const res5 = await fetch(`https://graph.instagram.com/v21.0/${igUserId}/media`, {
+      method: 'POST',
+      body: formData
+    })
+    const data5 = await res5.json()
+    if (!data5.error) return data5
+
+    // If all fail, throw a definitive conclusion
+    throw new Error(`Meta Account Restriction: Standalone publishing is ${data5.error.message}. Please use 'Connect via Facebook' flow instead.`)
   } catch (err: any) {
-    console.error(`[createImageContainer] Fatal:`, err)
-    throw new Error(`Instagram publishing failed: ${err.message}`)
+    console.error(`[createImageContainer] Fatal error sequence:`, err)
+    throw new Error(err.message)
   }
 }
 /**

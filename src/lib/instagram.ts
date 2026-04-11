@@ -41,36 +41,35 @@ export async function getInstagramAccounts(
   const accounts: IGUserInfo[] = []
 
   if (isDirect) {
-    console.log('[getInstagramAccounts] Step 1 (Direct): Using user_id from token response...');
+    console.log('[getInstagramAccounts] Step 1 (Direct): Fetching account from Instagram Graph API...');
 
-    // The token response from api.instagram.com already includes the user_id.
-    // We use it to query the Facebook Graph API for the account details.
+    // Try graph.instagram.com/me first (works with Instagram access tokens)
     if (igUserId) {
       try {
-        const url = `${GRAPH_API_BASE}/${igUserId}?fields=id,username,profile_picture_url&access_token=${accessToken}`;
-        console.log('[getInstagramAccounts] Querying:', url.replace(accessToken, '***'));
+        const url = `https://graph.instagram.com/v21.0/me?fields=id,username,profile_picture_url,account_type&access_token=${accessToken}`;
+        console.log('[getInstagramAccounts] Querying graph.instagram.com/me...');
         const res = await fetch(url);
         const data = await res.json();
         console.log('[getInstagramAccounts] Step 1 Response Status:', res.status);
 
-        if (data.error || !res.ok) {
-          console.error('[getInstagramAccounts] Step 1 Error:', JSON.stringify(data.error || data));
-        } else if (data.id) {
+        if (!data.error && res.ok && data.id) {
           accounts.push({
             id: data.id,
-            username: data.username || String(data.id),
+            username: data.username || String(igUserId),
             profile_picture_url: data.profile_picture_url || '',
-            account_type: 'BUSINESS',
+            account_type: data.account_type || 'BUSINESS',
           });
+        } else {
+          console.error('[getInstagramAccounts] Step 1 Error:', JSON.stringify(data.error || data));
         }
       } catch (err) {
         console.error('[getInstagramAccounts] Step 1 Exception:', err);
       }
     }
 
-    // If the above didn't work, use the igUserId directly as a minimal account
+    // Fallback: use igUserId directly  
     if (accounts.length === 0 && igUserId) {
-      console.log('[getInstagramAccounts] Fallback: Using user_id directly as account ID');
+      console.log('[getInstagramAccounts] Fallback: Using user_id directly');
       accounts.push({
         id: String(igUserId),
         username: String(igUserId),

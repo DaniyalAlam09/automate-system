@@ -145,6 +145,24 @@ export async function getInstagramAccounts(
                  }
                }
              }
+
+             // Probe Business-owned IG accounts directly
+             console.log(`[getInstagramAccounts] Probing business ${biz.id} directly for IG accounts...`);
+             const bizIgUrl = `${GRAPH_API_BASE}/${biz.id}/instagram_accounts?fields=id,username&access_token=${accessToken}`;
+             const bizIgRes = await fetch(bizIgUrl);
+             const bizIgData = await bizIgRes.json();
+             console.log(`[getInstagramAccounts] Business IG response:`, JSON.stringify(bizIgData));
+             
+             if (bizIgData.data) {
+               for (const ig of bizIgData.data) {
+                 accounts.push({
+                   id: ig.id,
+                   username: ig.username,
+                   profile_picture_url: '',
+                   account_type: 'BUSINESS',
+                 });
+               }
+             }
           }
         }
       } catch (bizErr) {

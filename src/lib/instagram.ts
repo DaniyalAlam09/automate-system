@@ -118,7 +118,38 @@ export async function getInstagramAccounts(
         }
       }
     } else if (pagesData.data && pagesData.data.length === 0) {
-      console.warn('[getInstagramAccounts] No Facebook Pages returned. Is the page checkboxed in the OAuth popup?');
+      console.warn('[getInstagramAccounts] No Facebook Pages returned. Probing Business Manager fallback...');
+      try {
+        const bizUrl = `${GRAPH_API_BASE}/me/businesses?fields=id,name&access_token=${accessToken}`;
+        const bizRes = await fetch(bizUrl);
+        const bizData = await bizRes.json();
+        console.log('[getInstagramAccounts] Standard Business List:', JSON.stringify(bizData));
+        
+        if (bizData.data && bizData.data.length > 0) {
+          for (const biz of bizData.data) {
+             console.log(`[getInstagramAccounts] Probing business ${biz.id} (${biz.name})...`);
+             const bizPagesUrl = `${GRAPH_API_BASE}/${biz.id}/owned_pages?fields=id,name,instagram_business_account{id,username}&access_token=${accessToken}`;
+             const bizPagesRes = await fetch(bizPagesUrl);
+             const bizPagesData = await bizPagesRes.json();
+             console.log(`[getInstagramAccounts] Business pages response:`, JSON.stringify(bizPagesData));
+             
+             if (bizPagesData.data) {
+               for (const page of bizPagesData.data) {
+                 if (page.instagram_business_account) {
+                   accounts.push({
+                     id: page.instagram_business_account.id,
+                     username: page.instagram_business_account.username,
+                     profile_picture_url: '',
+                     account_type: 'BUSINESS',
+                   });
+                 }
+               }
+             }
+          }
+        }
+      } catch (bizErr) {
+        console.error('[getInstagramAccounts] Business Manager fallback failed:', bizErr);
+      }
     }
   } catch (err) {
     console.error('[getInstagramAccounts] Standard Step 1 Exception:', err);

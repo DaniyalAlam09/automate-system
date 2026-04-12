@@ -196,8 +196,36 @@ export async function getInstagramAccounts(
           account_type: 'BUSINESS',
         });
       }
-    } catch (err) {
+      } catch (err) {
       console.error('[getInstagramAccounts] Standard Step 2 Exception:', err);
+    }
+  }
+
+  // 3. Deep Business Probe (requires business_management)
+  if (accounts.length === 0) {
+    console.log('[getInstagramAccounts] Standard Step 3: Deep Business Probe...');
+    try {
+      const url = `${GRAPH_API_BASE}/me?fields=businesses{instagram_accounts{id,username,profile_picture_url}}&access_token=${accessToken}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log('[getInstagramAccounts] Standard Step 3 Response:', JSON.stringify(data));
+      
+      if (data.businesses?.data) {
+        for (const biz of data.businesses.data) {
+          if (biz.instagram_accounts?.data) {
+            for (const ig of biz.instagram_accounts.data) {
+              accounts.push({
+                id: ig.id,
+                username: ig.username,
+                profile_picture_url: ig.profile_picture_url || '',
+                account_type: 'BUSINESS',
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[getInstagramAccounts] Standard Step 3 Exception:', err);
     }
   }
 

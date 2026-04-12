@@ -79,6 +79,15 @@ export async function getInstagramAccounts(
   }
 
   // Standard Facebook-linked Flow
+  try {
+    const permUrl = `${GRAPH_API_BASE}/me/permissions?access_token=${accessToken}`;
+    const permRes = await fetch(permUrl);
+    const permData = await permRes.json();
+    console.log('[getInstagramAccounts] Standard Granted Permissions:', JSON.stringify(permData));
+  } catch (e) {
+    console.error('[getInstagramAccounts] Permission check failed:', e);
+  }
+
   console.log('[getInstagramAccounts] Standard Step 1: Fetching pages from Graph API...');
   try {
     const pagesUrl = `${GRAPH_API_BASE}/me/accounts?fields=id,name&access_token=${accessToken}`;

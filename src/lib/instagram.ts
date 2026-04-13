@@ -164,6 +164,34 @@ export async function getInstagramAccounts(
     }
   }
 
+  // 4. Ad Account Probe (Final final attempt)
+  if (accounts.length === 0) {
+    console.log('[getInstagramAccounts] Standard Step 4: Ad Account Probe...');
+    try {
+      const url = `${GRAPH_API_BASE}/me/adaccounts?fields=instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log('[getInstagramAccounts] Ad Account Response:', JSON.stringify(data));
+      
+      if (data.data) {
+        for (const adAccount of data.data) {
+          if (adAccount.instagram_accounts?.data) {
+            for (const ig of adAccount.instagram_accounts.data) {
+              accounts.push({
+                id: ig.id,
+                username: ig.username,
+                profile_picture_url: ig.profile_picture_url || '',
+                account_type: 'BUSINESS',
+              });
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[getInstagramAccounts] Ad Account Exception:', err);
+    }
+  }
+
   console.log(`[getInstagramAccounts] Final found: ${accounts.length} accounts`);
   return Array.from(new Map(accounts.map(a => [a.id, a])).values());
 }

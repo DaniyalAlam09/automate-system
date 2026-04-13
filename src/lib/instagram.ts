@@ -88,144 +88,53 @@ export async function getInstagramAccounts(
     console.error('[getInstagramAccounts] Permission check failed:', e);
   }
 
-  console.log('[getInstagramAccounts] Standard Step 1: Fetching pages from Graph API...');
+  // 1. Try Unversioned Discovery (often more permissive)
+  console.log('[getInstagramAccounts] Standard Step 1: Unversioned Discovery...');
   try {
-    const pagesUrl = `${GRAPH_API_BASE}/me/accounts?fields=id,name&access_token=${accessToken}`;
-    const pagesRes = await fetch(pagesUrl);
-    const pagesData = await pagesRes.json();
-    console.log('[getInstagramAccounts] Standard Step 1 (Simple Pages List):', JSON.stringify(pagesData));
-
-    if (pagesData.data && pagesData.data.length > 0) {
-      for (const page of pagesData.data) {
-        console.log(`[getInstagramAccounts] Probing page ${page.id} (${page.name}) for IG accounts...`);
-        try {
-          const detailUrl = `${GRAPH_API_BASE}/${page.id}?fields=instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
-          const detailRes = await fetch(detailUrl);
-          const detailData = await detailRes.json();
-          console.log(`[getInstagramAccounts] Page ${page.id} detail response:`, JSON.stringify(detailData));
-
-          if (detailData.instagram_business_account) {
-            accounts.push({
-              id: detailData.instagram_business_account.id,
-              username: detailData.instagram_business_account.username,
-              profile_picture_url: detailData.instagram_business_account.profile_picture_url || '',
-              account_type: 'BUSINESS',
-            });
-            console.log(`[getInstagramAccounts] Successfully found IG account: ${detailData.instagram_business_account.username}`);
-          }
-        } catch (detailErr) {
-          console.error(`[getInstagramAccounts] Error probing page ${page.id}:`, detailErr);
+    const url = `https://graph.facebook.com/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    console.log('[getInstagramAccounts] Unversioned Response:', JSON.stringify(data));
+    
+    if (data.data) {
+      for (const page of data.data) {
+        if (page.instagram_business_account) {
+          accounts.push({
+            id: page.instagram_business_account.id,
+            username: page.instagram_business_account.username,
+            profile_picture_url: page.instagram_business_account.profile_picture_url || '',
+            account_type: 'BUSINESS',
+          });
         }
-      }
-    } else if (pagesData.data && pagesData.data.length === 0) {
-      console.warn('[getInstagramAccounts] No Facebook Pages returned. Probing Business Manager fallback...');
-      try {
-        const bizUrl = `${GRAPH_API_BASE}/me/businesses?fields=id,name&access_token=${accessToken}`;
-        const bizRes = await fetch(bizUrl);
-        const bizData = await bizRes.json();
-        console.log('[getInstagramAccounts] Standard Business List:', JSON.stringify(bizData));
-        
-        if (bizData.data && bizData.data.length > 0) {
-          for (const biz of bizData.data) {
-             console.log(`[getInstagramAccounts] Probing business ${biz.id} (${biz.name})...`);
-             const bizPagesUrl = `${GRAPH_API_BASE}/${biz.id}/owned_pages?fields=id,name,instagram_business_account{id,username}&access_token=${accessToken}`;
-             const bizPagesRes = await fetch(bizPagesUrl);
-             const bizPagesData = await bizPagesRes.json();
-             console.log(`[getInstagramAccounts] Business pages response:`, JSON.stringify(bizPagesData));
-             
-             if (bizPagesData.data) {
-               for (const page of bizPagesData.data) {
-                 if (page.instagram_business_account) {
-                   accounts.push({
-                     id: page.instagram_business_account.id,
-                     username: page.instagram_business_account.username,
-                     profile_picture_url: '',
-                     account_type: 'BUSINESS',
-                   });
-                 }
-               }
-             }
-
-             // Probe Business-owned IG accounts directly
-             console.log(`[getInstagramAccounts] Probing business ${biz.id} directly for IG accounts...`);
-             const bizIgUrl = `${GRAPH_API_BASE}/${biz.id}/instagram_accounts?fields=id,username&access_token=${accessToken}`;
-             const bizIgRes = await fetch(bizIgUrl);
-             const bizIgData = await bizIgRes.json();
-             console.log(`[getInstagramAccounts] Business IG response:`, JSON.stringify(bizIgData));
-             
-             if (bizIgData.data) {
-               for (const ig of bizIgData.data) {
-                 accounts.push({
-                   id: ig.id,
-                   username: ig.username,
-                   profile_picture_url: '',
-                   account_type: 'BUSINESS',
-                 });
-               }
-             }
-          }
-        }
-      } catch (bizErr) {
-        console.error('[getInstagramAccounts] Business Manager fallback failed:', bizErr);
       }
     }
   } catch (err) {
-    console.error('[getInstagramAccounts] Standard Step 1 Exception:', err);
+    console.error('[getInstagramAccounts] Unversioned Exception:', err);
   }
 
-  // 2. Fallback: Try to get Instagram accounts directly from the User node
+  // 2. Try Versioned Discovery (v19.0)
   if (accounts.length === 0) {
-    console.log('[getInstagramAccounts] Standard Step 2: Trying user node fallback...');
+    console.log('[getInstagramAccounts] Standard Step 2: v19.0 Discovery...');
     try {
-      const url = `${GRAPH_API_BASE}/me?fields=id,username,instagram_business_accounts{id,username,profile_picture_url},instagram_accounts{id,username,profile_picture_url}&access_token=${accessToken}`;
-      const userRes = await fetch(url);
-      const userData = await userRes.json();
-      console.log('[getInstagramAccounts] Standard Step 2 Response:', JSON.stringify(userData));
-      
-      const directAccounts = [
-        ...(userData.instagram_business_accounts?.data || []),
-        ...(userData.instagram_accounts?.data || []),
-      ];
-
-      for (const ig of directAccounts) {
-        console.log(`[getInstagramAccounts] Found IG account ${ig.username} direct on User node`);
-        accounts.push({
-          id: ig.id,
-          username: ig.username || ig.id,
-          profile_picture_url: ig.profile_picture_url || '',
-          account_type: 'BUSINESS',
-        });
-      }
-      } catch (err) {
-      console.error('[getInstagramAccounts] Standard Step 2 Exception:', err);
-    }
-  }
-
-  // 3. Deep Business Probe (requires business_management)
-  if (accounts.length === 0) {
-    console.log('[getInstagramAccounts] Standard Step 3: Deep Business Probe...');
-    try {
-      const url = `${GRAPH_API_BASE}/me?fields=businesses{instagram_accounts{id,username,profile_picture_url}}&access_token=${accessToken}`;
+      const url = `${GRAPH_API_BASE}/me/accounts?fields=id,name,instagram_business_account{id,username,profile_picture_url}&access_token=${accessToken}`;
       const res = await fetch(url);
       const data = await res.json();
-      console.log('[getInstagramAccounts] Standard Step 3 Response:', JSON.stringify(data));
+      console.log('[getInstagramAccounts] v19.0 Response:', JSON.stringify(data));
       
-      if (data.businesses?.data) {
-        for (const biz of data.businesses.data) {
-          if (biz.instagram_accounts?.data) {
-            for (const ig of biz.instagram_accounts.data) {
-              accounts.push({
-                id: ig.id,
-                username: ig.username,
-                profile_picture_url: ig.profile_picture_url || '',
-                account_type: 'BUSINESS',
-              });
-            }
+      if (data.data) {
+        for (const page of data.data) {
+          if (page.instagram_business_account) {
+            accounts.push({
+              id: page.instagram_business_account.id,
+              username: page.instagram_business_account.username,
+              profile_picture_url: page.instagram_business_account.profile_picture_url || '',
+              account_type: 'BUSINESS',
+            });
           }
         }
       }
     } catch (err) {
-      console.error('[getInstagramAccounts] Standard Step 3 Exception:', err);
+      console.error('[getInstagramAccounts] v19.0 Exception:', err);
     }
   }
 

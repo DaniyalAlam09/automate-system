@@ -138,6 +138,32 @@ export async function getInstagramAccounts(
     }
   }
 
+  // 3. Try Accounts edge as a field on /me (Final discovery attempt)
+  if (accounts.length === 0) {
+    console.log('[getInstagramAccounts] Standard Step 3: Nested Accounts edge...');
+    try {
+      const url = `${GRAPH_API_BASE}/me?fields=accounts{id,name,instagram_business_account{id,username,profile_picture_url}}&access_token=${accessToken}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      console.log('[getInstagramAccounts] Nested Accounts Response:', JSON.stringify(data));
+      
+      if (data.accounts?.data) {
+        for (const page of data.accounts.data) {
+          if (page.instagram_business_account) {
+            accounts.push({
+              id: page.instagram_business_account.id,
+              username: page.instagram_business_account.username,
+              profile_picture_url: page.instagram_business_account.profile_picture_url || '',
+              account_type: 'BUSINESS',
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error('[getInstagramAccounts] Nested Accounts Exception:', err);
+    }
+  }
+
   console.log(`[getInstagramAccounts] Final found: ${accounts.length} accounts`);
   return Array.from(new Map(accounts.map(a => [a.id, a])).values());
 }
